@@ -19,8 +19,8 @@ import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand'
 
 export class SkyOffice extends Room<OfficeState> {
   private dispatcher = new Dispatcher(this)
-  private name: string
-  private description: string
+  private name: string = ''
+  private description: string = ''
   private password: string | null = null
 
   async onCreate(options: IRoomData) {
@@ -68,13 +68,15 @@ export class SkyOffice extends Room<OfficeState> {
     // when a player stop sharing screen
     this.onMessage(Message.STOP_SCREEN_SHARE, (client, message: { computerId: string }) => {
       const computer = this.state.computers.get(message.computerId)
-      computer.connectedUser.forEach((id) => {
-        this.clients.forEach((cli) => {
-          if (cli.sessionId === id && cli.sessionId !== client.sessionId) {
-            cli.send(Message.STOP_SCREEN_SHARE, client.sessionId)
-          }
+      if (computer) {
+        computer.connectedUser.forEach((id) => {
+          this.clients.forEach((cli) => {
+            if (cli.sessionId === id && cli.sessionId !== client.sessionId) {
+              cli.send(Message.STOP_SCREEN_SHARE, client.sessionId)
+            }
+          })
         })
-      })
+      }
     })
 
     // when a player connect to a whiteboard, add to the whiteboard connectedUser array
@@ -157,7 +159,7 @@ export class SkyOffice extends Room<OfficeState> {
 
   async onAuth(client: Client, options: { password: string | null }) {
     if (this.password) {
-      const validPassword = await bcrypt.compare(options.password, this.password)
+      const validPassword = await bcrypt.compare(options.password || '', this.password)
       if (!validPassword) {
         throw new ServerError(403, 'Password is incorrect!')
       }
