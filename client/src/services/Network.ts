@@ -31,7 +31,7 @@ export default class Network {
 
   constructor() {
     const protocol = window.location.protocol.replace('http', 'ws')
-    const endpoint = `${import.meta.env.VITE_SERVER_URL}:2567`;
+    const endpoint = `${import.meta.env.VITE_SERVER_URL}`;
     this.client = new Client(endpoint)
     this.joinLobbyRoom().then(() => {
       store.dispatch(setLobbyJoined(true))
