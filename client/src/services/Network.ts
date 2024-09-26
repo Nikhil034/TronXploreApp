@@ -29,17 +29,42 @@ export default class Network {
 
   mySessionId!: string
 
-  constructor() {
-    const protocol = window.location.protocol.replace('http', 'ws')
-    const endpoint = `${import.meta.env.VITE_SERVER_URL}`;
-    this.client = new Client(endpoint)
-    this.joinLobbyRoom().then(() => {
-      store.dispatch(setLobbyJoined(true))
-    })
+  // constructor() {
+  //   const protocol = window.location.protocol.replace('http', 'ws')
+  //   const endpoint = `${import.meta.env.VITE_SERVER_URL}`;
+  //   this.client = new Client(endpoint)
+  //   this.joinLobbyRoom().then(() => {
+  //     store.dispatch(setLobbyJoined(true))
+  //   })
 
-    phaserEvents.on(Event.MY_PLAYER_NAME_CHANGE, this.updatePlayerName, this)
-    phaserEvents.on(Event.MY_PLAYER_TEXTURE_CHANGE, this.updatePlayer, this)
-    phaserEvents.on(Event.PLAYER_DISCONNECTED, this.playerStreamDisconnect, this)
+  //   phaserEvents.on(Event.MY_PLAYER_NAME_CHANGE, this.updatePlayerName, this)
+  //   phaserEvents.on(Event.MY_PLAYER_TEXTURE_CHANGE, this.updatePlayer, this)
+  //   phaserEvents.on(Event.PLAYER_DISCONNECTED, this.playerStreamDisconnect, this)
+  // }
+
+  constructor() {
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log(isProduction,process.env.NODE_ENV);
+    let endpoint: string;
+  
+    if (isProduction) {
+      // In production, use WSS and the provided server URL
+      endpoint = `wss://${import.meta.env.VITE_SERVER_URL}`;
+    } else {
+      // In development, use WS and the local server
+      const protocol = window.location.protocol.replace('http', 'ws');
+      endpoint = `${protocol}//${window.location.hostname}:2567`;
+    }
+  
+    console.log('Connecting to:', endpoint);
+  
+    this.client = new Client(endpoint);
+    
+    this.joinLobbyRoom().then(() => {
+      store.dispatch(setLobbyJoined(true));
+    }).catch(error => {
+      console.error('Failed to join lobby:', error);
+    });
   }
 
   /**
