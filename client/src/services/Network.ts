@@ -49,7 +49,7 @@ export default class Network {
   
     if (isProduction) {
       // In production, use WSS and the provided server URL
-      endpoint = `wss://${import.meta.env.VITE_SERVER_URL}`;
+      endpoint = `https://${import.meta.env.VITE_SERVER_URL}/ws`;
     } else {
       // In development, use WS and the local server
       const protocol = window.location.protocol.replace('http', 'ws');
