@@ -9,4 +9,8 @@ export default class Chair extends Item {
 
     this.itemType = ItemType.CHAIR
   }
+
+  onOverlapDialog() {
+    // this.setDialogBox('Press E to sit')
+  }
 }
