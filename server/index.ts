@@ -12,11 +12,9 @@ const port = Number(process.env.PORT || 2567)
 const app = express()
 
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tronxplore-app.vercel.app'] 
-    : ['http://localhost:5173/', 'http://127.0.0.1:3000'],
+  origin: "*",
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization',],
   credentials: true,
 }
 
