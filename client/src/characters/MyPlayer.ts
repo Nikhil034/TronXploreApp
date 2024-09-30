@@ -5,8 +5,6 @@ import { sittingShiftData } from './Player'
 import Player from './Player'
 import Network from '../services/Network'
 import Chair from '../items/Chair'
-import Computer from '../items/Computer'
-import Whiteboard from '../items/Whiteboard'
 
 import { phaserEvents, Event } from '../events/EventCenter'
 import store from '../stores'
@@ -14,9 +12,6 @@ import { pushPlayerJoinedMessage } from '../stores/ChatStore'
 import { ItemType } from '../../../types/Items'
 import { NavKeys } from '../../../types/KeyboardState'
 import { JoystickMovement } from '../components/Joystick'
-import { openURL } from '../utils/helpers'
-// import { useNavigate } from 'react-router-dom';
-// import { NavigationContext } from '../App'
 
 export default class MyPlayer extends Player {
   private playContainerBody: Phaser.Physics.Arcade.Body
@@ -39,12 +34,6 @@ export default class MyPlayer extends Player {
   ) {
     super(scene, x, y, texture, id, frame)
     this.playContainerBody = this.playerContainer.body as Phaser.Physics.Arcade.Body
-    // const [iframeContent, setIframeContent] = useState('')
-    // useEffect(() => {
-    //   fetch('/iframe1.html')
-    //     .then(response => response.text())
-    //     .then(html => setIframeContent(html))
-    // }, [])
     this.popupPositions = [
       {
         x: 705,
@@ -54,8 +43,8 @@ export default class MyPlayer extends Player {
           shown: false
       },
       {
-        x: 408,
-        y: 457,
+        x: 402,
+        y: 460,
         message:
           "You've reached the right place! Here you can complete your first three tasks. Look around for interactive objects to get started.",
           shown: false
@@ -67,7 +56,6 @@ export default class MyPlayer extends Player {
         shown: false,
         button:'Task 1'
       },
-      // { x: 300, y: 540, message: "Great job! You've created your wallet. Now, let's connect it to a website." },  //this is open with confettii
       {
         x: 548,
         y: 553,
@@ -76,7 +64,6 @@ export default class MyPlayer extends Player {
         shown: false,
         button:'Task 2'
       },
-      // // { x: 548, y: 553, message: "Excellent! Your wallet is now connected. Time for your final task in this room." }, //this is open with confettii
       {
         x: 524,
         y: 656,
@@ -85,41 +72,45 @@ export default class MyPlayer extends Player {
           shown: false,
           button:'Task 3'
       },
-      // // { x: 524, y: 656, message: "Congratulations! You've completed the first three tasks. You're now ready to explore more advanced operations in other areas of the game." },//this is open with confettii
-      // {
-      //   x: 767,
-      //   y: 428,
-      //   message:
-      //     "Welcome to the TRX Transaction Hub! Here you'll learn about handling TRX and managing network resources.",
-      // },
-      // {
-      //   x: 952,
-      //   y: 313,
-      //   message:
-      //     'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions. Look for a water tap or coin dispenser icon.',
-      // },
-      // // { x: 867, y: 428, message: "Great! You've received test TRX. Now let's put it to use." },//this is open with confettii
-      // {
-      //   x: 1095,
-      //   y: 530,
-      //   message:
-      //     'Task 5: Send TRX to an Address. Go to the transfer station and try sending some TRX to a practice address.',
-      // },
-      // // { x: 867, y: 428, message: "Transaction complete! You've successfully sent TRX. Let's check the resources you've used." },//this is open with confettii
-      // {
-      //   x: 1208,
-      //   y: 789,
-      //   message:
-      //     'Task 6: Check Bandwidth and Energy Used. Find the resource monitor to see how much bandwidth and energy your transaction consumed.',
-      // },
-      // // { x: 867, y: 428, message: "Now you understand how transactions use network resources. Let's learn how to get more energy." },//this is open with confettii
-      // {
-      //   x: 855,
-      //   y: 840,
-      //   message:
-      //     'Task 7: Get Energy for Use by Staking. Go to the staking station to learn how to stake TRX for energy.',
-      // },
-      // // { x: 867, y: 428, message: "Congratulations! You've mastered TRX transactions and resource management. You're ready for more advanced blockchain operations!" },//this is open with confettii
+      {
+        x: 767,
+        y: 428,
+        message:
+          "Welcome to the TRX Transaction Hub! Here you'll learn about handling TRX and managing network resources.",
+          shown: false
+      },
+      {
+        x: 952,
+        y: 313,
+        message:
+          'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions. Look for a water tap or coin dispenser icon.',shown: false,
+        button:'Task 4'
+
+      },
+      {
+        x: 1095,
+        y: 530,
+        message:
+          'Task 5: Send TRX to an Address. Go to the transfer station and try sending some TRX to a practice address.',
+          shown: false,
+        button:'Task 5'
+      },
+      {
+        x: 1208,
+        y: 789,
+        message:
+          'Task 6: Check Bandwidth and Energy Used. Find the resource monitor to see how much bandwidth and energy your transaction consumed.',
+          shown: false,
+        button:'Task 6'
+      },
+      {
+        x: 855,
+        y: 840,
+        message:
+          'Task 7: Get Energy for Use by Staking. Go to the staking station to learn how to stake TRX for energy.',
+          shown: false,
+        button:'Task 7'
+      },
       // {
       //   x: 405,
       //   y: 371,
@@ -160,7 +151,6 @@ export default class MyPlayer extends Player {
       //   message:
       //     'Task 11: Claim Your Achievement Certificate. Find the certification kiosk to receive a special NFT certificate for completing all the tasks in the TRON Adventure.',
       // },
-      // Add more positions as needed
     ]
     this.popupPositions.forEach(pos => pos.shown = false)
   }
@@ -192,33 +182,10 @@ export default class MyPlayer extends Player {
 
     const item = playerSelector.selectedItem
 
-    if (Phaser.Input.Keyboard.JustDown(keyR)) {
-      switch (item?.itemType) {
-        case ItemType.COMPUTER:
-          const computer = item as Computer
-          computer.openDialog(this.playerId, network)
-          break
-        case ItemType.WHITEBOARD:
-          const whiteboard = item as Whiteboard
-          whiteboard.openDialog(network)
-          break
-        case ItemType.VENDINGMACHINE:
-          // hacky and hard-coded, but leaving it as is for now
-          break
-      }
-    }
-
     switch (this.playerBehavior) {
       case PlayerBehavior.IDLE:
-        // if press E in front of selected chair
         if (Phaser.Input.Keyboard.JustDown(keyE) && item?.itemType === ItemType.CHAIR) {
           const chairItem = item as Chair
-          /**
-           * move player to the chair and play sit animation
-           * a delay is called to wait for player movement (from previous velocity) to end
-           * as the player tends to move one more frame before sitting down causing player
-           * not sitting at the center of the chair
-           */
           this.scene.time.addEvent({
             delay: 10,
             callback: () => {
@@ -341,7 +308,7 @@ export default class MyPlayer extends Player {
     console.log(`Player position: (${playerX}, ${playerY})`)
 
     for (const position of this.popupPositions) {
-      if (!position.shown && Math.abs(playerX - position.x) <= 50 && Math.abs(playerY - position.y) <= 50) {
+      if (!position.shown && Math.abs(playerX - position.x) <= 30 && Math.abs(playerY - position.y) <= 30) {
         console.log(`Triggering popup at (${position.x}, ${position.y})`)
         this.showPopup(position.message, position.x, position.y - 75, position.button)
         position.shown = true
@@ -365,10 +332,6 @@ export default class MyPlayer extends Player {
     glow.fillStyle(0xffffff, 0.1)
     glow.fillCircle(0, 0, Math.max(width, height) / 2 + 10)
 
-    // Create the background
-    // const background = this.scene.add.rectangle(0, 0, 200, 100, 0xffffff)
-    // background.setStrokeStyle(2, 0x000000)
-
     // Create the text
     const textStyle = {
       fontFamily: 'Arial, sans-serif',
@@ -387,17 +350,6 @@ export default class MyPlayer extends Player {
     })
     this.closeButton.setInteractive({ useHandCursor: true })
     this.closeButton.on('pointerdown', () => this.closePopup())
-
-    // const actionButton = this.scene.add.text(0, 50, 'Continue', {
-    //   fontFamily: 'Arial, sans-serif',
-    //   fontSize: '18px',
-    //   color: '#ffffff',
-    //   backgroundColor: '#3498db',
-    //   padding: { x: 10, y: 5 },
-    // })
-    // actionButton.setOrigin(0.5)
-    // actionButton.setInteractive({ useHandCursor: true })
-    // actionButton.on('pointerdown', () => this.closePopup())
 
     const elements = [background, text, this.closeButton]
 
@@ -431,7 +383,7 @@ export default class MyPlayer extends Player {
     })
 
     // Make the popup disappear after 5 seconds if not closed manually
-    // this.popupTimer = this.scene.time.delayedCall(3000, () => this.closePopup())
+    // this.popupTimer = this.scene.time.delayedCall(7000, () => this.closePopup())
   }
   private handleButtonClick(buttonText: string) {
     switch (buttonText) {
@@ -443,6 +395,18 @@ export default class MyPlayer extends Player {
         break;
       case 'Task 3':
         this.scene.game.events.emit('setFrame', '/task3');
+        break;
+      case 'Task 4':
+        this.scene.game.events.emit('setFrame', '/task4');
+        break;
+      case 'Task 5':
+        this.scene.game.events.emit('setFrame', '/task5');
+        break;
+      case 'Task 6':
+        this.scene.game.events.emit('setFrame', '/task6');
+        break;
+      case 'Task 7':
+        this.scene.game.events.emit('setFrame', '/task7');
         break;
     }
     this.closePopup();

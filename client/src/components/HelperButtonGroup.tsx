@@ -5,16 +5,15 @@ import IconButton from '@mui/material/IconButton'
 import Avatar from '@mui/material/Avatar'
 import Tooltip from '@mui/material/Tooltip'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import ShareIcon from '@mui/icons-material/Share'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import CloseIcon from '@mui/icons-material/Close'
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'
-import GitHubIcon from '@mui/icons-material/GitHub'
-import TwitterIcon from '@mui/icons-material/Twitter'
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset'
 import VideogameAssetOffIcon from '@mui/icons-material/VideogameAssetOff'
+import LeaderBoard from './LeaderBoard'
 
 import { BackgroundMode } from '../../../types/BackgroundMode'
 import { setShowJoystick, toggleBackgroundMode } from '../stores/UserStore'
@@ -123,13 +122,14 @@ export default function HelperButtonGroup() {
   const roomName = useAppSelector((state) => state.room.roomName)
   const roomDescription = useAppSelector((state) => state.room.roomDescription)
   const dispatch = useAppDispatch()
+  const [showLeaderBoard, setShowLeaderBoard] = useState(false)
 
   const guideSteps = [
-    "1. Go to the bottom-left room to complete your first three tasks.",
-    "2. Go to the bottom-right room to complete the next four tasks.",
-    "3. Go to the top-left room to complete the next two tasks.",
-    "4. Go to the top-right room to complete the final two tasks.",
-    "5. Get your certificate after completing all tasks!"
+    '1. Go to the bottom-left room to complete your first three tasks.',
+    '2. Go to the bottom-right room to complete the next four tasks.',
+    '3. Go to the top-left room to complete the next two tasks.',
+    '4. Go to the top-right room to complete the final two tasks.',
+    '5. Get your certificate after completing all tasks!',
   ]
 
   return (
@@ -142,6 +142,7 @@ export default function HelperButtonGroup() {
             </StyledFab>
           </Tooltip>
         )}
+        {showLeaderBoard && <LeaderBoard onClose={() => setShowLeaderBoard(false)} />}
         {showRoomInfo && (
           <Wrapper>
             <IconButton className="close" onClick={() => setShowRoomInfo(false)} size="small">
@@ -183,17 +184,6 @@ export default function HelperButtonGroup() {
       <ButtonGroup>
         {roomJoined && (
           <>
-            {/* <Tooltip title="Room Info">
-              <StyledFab
-                size="small"
-                onClick={() => {
-                  setShowRoomInfo(!showRoomInfo)
-                  setShowControlGuide(false)
-                }}
-              >
-                <ShareIcon />
-              </StyledFab>
-            </Tooltip> */}
             <Tooltip title="Control Guide">
               <StyledFab
                 size="small"
@@ -205,9 +195,19 @@ export default function HelperButtonGroup() {
                 <HelpOutlineIcon />
               </StyledFab>
             </Tooltip>
+
+            <Tooltip title="Leader Board">
+              <StyledFab
+                size="small"
+                onClick={() => {
+                  setShowLeaderBoard(!showLeaderBoard)
+                }}
+              >
+                <EmojiEventsIcon />
+              </StyledFab>
+            </Tooltip>
           </>
         )}
-
         <Tooltip title="Switch Background Theme">
           <StyledFab size="small" onClick={() => dispatch(toggleBackgroundMode())}>
             {backgroundMode === BackgroundMode.DAY ? <DarkModeIcon /> : <LightModeIcon />}
