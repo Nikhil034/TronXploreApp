@@ -225,7 +225,6 @@ export default function RoomSelectionDialog() {
                   />
                   <StyledButton variant="contained" onClick={handleConnect}>
                     Connect to public lobby
-                     
                   </StyledButton>
                 </Content>
               </motion.div>

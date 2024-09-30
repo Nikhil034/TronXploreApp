@@ -34,9 +34,6 @@ export default class Game extends Phaser.Scene {
   private otherPlayerMap = new Map<string, OtherPlayer>()
   computerMap = new Map<string, Computer>()
   private whiteboardMap = new Map<string, Whiteboard>()
-  // private welcomePopup!: Phaser.GameObjects.Container
-  // private startingPosition!: Phaser.Math.Vector2
-  // private popupShown = false
 
   constructor() {
     super('game')
@@ -88,8 +85,6 @@ export default class Game extends Phaser.Scene {
 
     this.myPlayer = this.add.myPlayer(705, 500, 'adam', this.network.mySessionId)
     this.playerSelector = new PlayerSelector(this, 0, 0, 16, 16)
-
-    // this.startingPosition = new Phaser.Math.Vector2(705, 500)
 
     // import chair objects from Tiled map to Phaser
     const chairs = this.physics.add.staticGroup({ classType: Chair })
@@ -156,8 +151,6 @@ export default class Game extends Phaser.Scene {
       undefined,
       this
     )
-    
-    // this.otherPlayers = this.physics.add.group({ classType: OtherPlayer })
 
     this.physics.add.overlap(
       this.myPlayer,
@@ -176,61 +169,7 @@ export default class Game extends Phaser.Scene {
     this.network.onItemUserAdded(this.handleItemUserAdded, this)
     this.network.onItemUserRemoved(this.handleItemUserRemoved, this)
     this.network.onChatMessageAdded(this.handleChatMessageAdded, this)
-
-    // this.createWelcomePopup()
   }
-
-  // private createWelcomePopup() {
-  //   const width = 400
-  //   const height = 300
-  //   const x = this.cameras.main.width / 2
-  //   const y = this.cameras.main.height / 2
-
-  //   this.welcomePopup = this.add.container(x, y)
-  //   this.welcomePopup.setDepth(1000)
-
-  //   const background = this.add.rectangle(0, 0, width, height, 0x000000, 0.7)
-  //   background.setOrigin(0.5)
-
-  //   const title = this.add.text(0, -100, 'Welcome to the Game!', {
-  //     fontSize: '24px',
-  //     color: '#ffffff',
-  //   })
-  //   title.setOrigin(0.5)
-
-  //   const message = this.add.text(0, 0, 'Complete tasks in each room to progress.\nGood luck on your adventure!', {
-  //     fontSize: '18px',
-  //     color: '#ffffff',
-  //     align: 'center',
-  //   })
-  //   message.setOrigin(0.5)
-
-  //   const closeButton = this.add.text(0, 100, 'Close', {
-  //     fontSize: '18px',
-  //     color: '#ffffff',
-  //     backgroundColor: '#ff0000',
-  //     padding: { x: 10, y: 5 },
-  //   })
-  //   closeButton.setOrigin(0.5)
-  //   closeButton.setInteractive({ useHandCursor: true })
-  //   closeButton.on('pointerdown', () => {
-  //     this.hideWelcomePopup()
-  //   })
-
-  //   this.welcomePopup.add([background, title, message, closeButton])
-  //   this.welcomePopup.setVisible(false)
-  // }
-
-  // showWelcomePopup() {
-  //   this.welcomePopup.setVisible(true)
-  //   this.disableKeys()
-  //   this.popupShown = true
-  // }
-
-  // hideWelcomePopup() {
-  //   this.welcomePopup.setVisible(false)
-  //   this.enableKeys()
-  // }
 
   private handleItemSelectorOverlap(playerSelector, selectionItem) {
     const currentItem = playerSelector.selectedItem as Item
@@ -346,12 +285,6 @@ export default class Game extends Phaser.Scene {
     if (this.myPlayer && this.network) {
       this.playerSelector.update(this.myPlayer, this.cursors)
       this.myPlayer.update(this.playerSelector, this.cursors, this.keyE, this.keyR, this.network)
-
-      // if (!this.popupShown &&
-      //   Math.abs(this.myPlayer.x - this.startingPosition.x) < 5 &&
-      //   Math.abs(this.myPlayer.y - this.startingPosition.y) < 5) {
-      // this.showWelcomePopup()
-    // }
     }
   }
 }

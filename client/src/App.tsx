@@ -2,8 +2,13 @@ import React, { createContext, useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components'
 import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom'
 import Frame1 from '../src/frames/frame1'
-import Frame2 from '../src/frames/frame2'
-import Frame3 from '../src/frames/frame3'
+import Frame1A from './frames/frame1A'
+import Frame2 from './frames/frame2'
+import Frame3 from './frames/frame3'
+import Frame3A from './frames/frame3A'
+import Frame4 from './frames/frame4'
+import Frame5 from './frames/frame5'
+import Frame10 from '../src/frames/frame10'
 
 import { useAppSelector } from './hooks'
 
@@ -15,6 +20,14 @@ import VideoConnectionDialog from './components/VideoConnectionDialog'
 import Chat from './components/Chat'
 import HelperButtonGroup from './components/HelperButtonGroup'
 import MobileVirtualJoystick from './components/MobileVirtualJoystick'
+import Frame8 from './frames/frame7A'
+import Frame6Trc20 from '../src/frames/frame6Trc20'
+import Frame9 from '../src/frames/frame9'
+import Frame10A from './frames/frame10A'
+import Frame7 from './frames/frame7'
+import Frame6 from './frames/frame6'
+import Frame6A from './frames/frame6A'
+import Frame7A from './frames/frame7A'
 
 declare global {
   interface Window {
@@ -49,7 +62,6 @@ function AppContent() {
   const loggedIn = useAppSelector((state) => state.user.loggedIn)
   const computerDialogOpen = useAppSelector((state) => state.computer.computerDialogOpen)
   const whiteboardDialogOpen = useAppSelector((state) => state.whiteboard.whiteboardDialogOpen)
-  const videoConnected = useAppSelector((state) => state.user.videoConnected)
   const roomJoined = useAppSelector((state) => state.room.roomJoined)
 
   useEffect(() => {
@@ -99,8 +111,20 @@ function AppContent() {
       </Backdrop>
       <Routes>
         <Route path="/task1" element={<FullScreenFrame><Frame1 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task1_continue" element={<FullScreenFrame><Frame1A onBack={() => navigate('/task1')} /></FullScreenFrame>} />
         <Route path="/task2" element={<FullScreenFrame><Frame2 onBack={() => navigate('/')} /></FullScreenFrame>} />
         <Route path="/task3" element={<FullScreenFrame><Frame3 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task3_continue" element={<FullScreenFrame><Frame3A onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task4" element={<FullScreenFrame><Frame4 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task5" element={<FullScreenFrame><Frame5 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task6" element={<FullScreenFrame><Frame6 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task6_continue" element={<FullScreenFrame><Frame6A onBack={() => navigate('/task6')} /></FullScreenFrame>} />
+        <Route path="/task7" element={<FullScreenFrame><Frame7 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task7_continue" element={<FullScreenFrame><Frame7A onBack={() => navigate('/task7')} /></FullScreenFrame>} />
+        <Route path="/task6Trc20" element={<FullScreenFrame><Frame6Trc20 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task9" element={<FullScreenFrame><Frame9 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path="/task10" element={<FullScreenFrame><Frame10 onBack={() => navigate('/')} /></FullScreenFrame>} />
+        <Route path='/continue' element={<FullScreenFrame><Frame10A onBack={() => navigate('/task10')} /></FullScreenFrame>} />
       </Routes>
     </NavigationContext.Provider>
   )
