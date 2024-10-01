@@ -17,12 +17,21 @@ export default class MyPlayer extends Player {
   private playContainerBody: Phaser.Physics.Arcade.Body
   private chairOnSit?: Chair
   public joystickMovement?: JoystickMovement
-  private popupPositions: { x: number; y: number; message: string; shown: boolean; button?: string }[]
+  private popupPositions: {
+    x: number
+    y: number
+    message: string
+    shown: boolean
+    button?: string
+    taskKey: string
+  }[]
   private popupShown: boolean = false
   private popup?: Phaser.GameObjects.Container
   private closeButton?: Phaser.GameObjects.Text
   private popupTween?: Phaser.Tweens.Tween
   private popupTimer?: Phaser.Time.TimerEvent
+  private popupCooldowns: Map<string, number> = new Map()
+  private readonly POPUP_COOLDOWN = 5000 // 3 seconds cooldown
 
   constructor(
     scene: Phaser.Scene,
@@ -40,21 +49,24 @@ export default class MyPlayer extends Player {
         y: 500,
         message:
           'Welcome to the tron Adventure! To begin your journey, head to the bottom-left room to complete your first three tasks.',
-          shown: false
+        shown: false,
+        taskKey: 'Popup-1',
       },
       {
         x: 402,
         y: 460,
         message:
           "You've reached the right place! Here you can complete your first three tasks. Look around for interactive objects to get started.",
-          shown: false
+        shown: false,
+        taskKey: 'Popup-2',
       },
       {
         x: 223,
         y: 562,
-        message:'hello',
+        message: 'Your are reaching your first',
         shown: false,
-        button:'Task 1'
+        button: 'Task 1',
+        taskKey: 'is_create_wallet_task1',
       },
       {
         x: 548,
@@ -62,61 +74,70 @@ export default class MyPlayer extends Player {
         message:
           'Task 2: Connect Wallet to a Website. Find the website icon and click on it to connect your newly created wallet.',
         shown: false,
-        button:'Task 2'
+        button: 'Task 2',
+        taskKey: 'is_connect_wallet_task2',
       },
       {
         x: 524,
         y: 656,
         message:
           'Task 3: Sign a Transaction. Go to the transaction panel and try signing your first transaction.',
-          shown: false,
-          button:'Task 3'
+        shown: false,
+        button: 'Task 3',
+        taskKey: 'is_sign_tx_task3',
       },
       {
         x: 767,
         y: 428,
         message:
           "Welcome to the TRX Transaction Hub! Here you'll learn about handling TRX and managing network resources.",
-          shown: false
+        shown: false,
+        taskKey: 'Popup-3',
       },
       {
         x: 952,
         y: 313,
         message:
-          'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions. Look for a water tap or coin dispenser icon.',shown: false,
-        button:'Task 4'
-
+          'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions. Look for a water tap or coin dispenser icon.',
+        shown: false,
+        button: 'Task 4',
+        taskKey: 'is_get_trx_task4',
       },
       {
         x: 1095,
         y: 530,
         message:
           'Task 5: Send TRX to an Address. Go to the transfer station and try sending some TRX to a practice address.',
-          shown: false,
-        button:'Task 5'
+        shown: false,
+        button: 'Task 5',
+        taskKey: 'is_send_trx_task5',
       },
       {
         x: 1208,
         y: 789,
         message:
           'Task 6: Check Bandwidth and Energy Used. Find the resource monitor to see how much bandwidth and energy your transaction consumed.',
-          shown: false,
-        button:'Task 6'
+        shown: false,
+        button: 'Task 6',
+        taskKey: 'is_check_bandwidth_task6',
       },
       {
         x: 855,
         y: 840,
         message:
           'Task 7: Get Energy for Use by Staking. Go to the staking station to learn how to stake TRX for energy.',
-          shown: false,
-        button:'Task 7'
+        shown: false,
+        button: 'Task 7',
+        taskKey: 'is_get_energy_task7',
       },
-      // {
-      //   x: 405,
-      //   y: 371,
-      //   message:
-      //     "Welcome to the TRC20 Token Operations Room! Here you'll learn about creating and managing TRC20 tokens on the TRON network.",
-      // },
+      {
+        x: 405,
+        y: 371,
+        message:
+          "Welcome to the TRC20 Token Operations Room! Here you'll learn about creating and managing TRC20 tokens on the TRON network.",
+        shown: false,
+        taskKey: 'Popup-4',
+      },
 
       // {
       //   x: 397,
@@ -152,7 +173,7 @@ export default class MyPlayer extends Player {
       //     'Task 11: Claim Your Achievement Certificate. Find the certification kiosk to receive a special NFT certificate for completing all the tasks in the TRON Adventure.',
       // },
     ]
-    this.popupPositions.forEach(pos => pos.shown = false)
+    this.popupPositions.forEach((pos) => (pos.shown = false))
   }
 
   setPlayerName(name: string) {
@@ -299,25 +320,47 @@ export default class MyPlayer extends Player {
     super.update(playerSelector, cursors, keyE, keyR, network)
 
     // Check for popup triggers
+
     this.checkPopupTriggers()
   }
   private checkPopupTriggers() {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
-    console.log(`Player position: (${playerX}, ${playerY})`)
+    const taskStatus = this.getTaskStatus()
+    const currentTime = this.scene.time.now
 
     for (const position of this.popupPositions) {
-      if (!position.shown && Math.abs(playerX - position.x) <= 30 && Math.abs(playerY - position.y) <= 30) {
-        console.log(`Triggering popup at (${position.x}, ${position.y})`)
-        this.showPopup(position.message, position.x, position.y - 75, position.button)
+      if (
+        !position.shown &&
+        Math.abs(playerX - position.x) <= 30 &&
+        Math.abs(playerY - position.y) <= 30
+      ) {
+        const cooldownEndTime = this.popupCooldowns.get(position.taskKey) || 0
+        if (currentTime < cooldownEndTime) {
+          continue // Skip this popup if it's still in cooldown
+        }
+
+        const isCompleted = taskStatus[position.taskKey]
+        const message = isCompleted
+          ? `You've already completed this task: ${position.message}`
+          : position.message
+        const buttonText = isCompleted ? 'View Task' : position.button
+
+        this.showPopup(message, position.x, position.y - 75, buttonText, position.taskKey)
         position.shown = true
         break
       }
     }
   }
-  private showPopup(message: string, x: number, y: number, buttonText?:string) {
+
+  private getTaskStatus(): Record<string, boolean> {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+  private showPopup(message: string, x: number, y: number, buttonText?: string, taskKey?: string) {
     this.popupShown = true
+    console.log('again come increase x and y')
 
     // Create a container for the popup
     this.popup = this.scene.add.container(x, y)
@@ -363,12 +406,12 @@ export default class MyPlayer extends Player {
       })
       actionButton.setOrigin(0.5)
       actionButton.setInteractive({ useHandCursor: true })
-      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText))
+      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText, taskKey))
       elements.push(actionButton)
     }
-  
-  // Add the DOM element to the popup container
-  this.popup.add(elements);
+
+    // Add the DOM element to the popup container
+    this.popup.add(elements)
     // Add background and text to the container
     this.popup.add([glow, background, text, this.closeButton])
     this.popup.setDepth(1000)
@@ -385,35 +428,41 @@ export default class MyPlayer extends Player {
     // Make the popup disappear after 5 seconds if not closed manually
     // this.popupTimer = this.scene.time.delayedCall(7000, () => this.closePopup())
   }
-  private handleButtonClick(buttonText: string) {
-    switch (buttonText) {
-      case 'Task 1':
-        this.scene.game.events.emit('setFrame', '/task1');
-        break;
-      case 'Task 2':
-        this.scene.game.events.emit('setFrame', '/task2');
-        break;
-      case 'Task 3':
-        this.scene.game.events.emit('setFrame', '/task3');
-        break;
-      case 'Task 4':
-        this.scene.game.events.emit('setFrame', '/task4');
-        break;
-      case 'Task 5':
-        this.scene.game.events.emit('setFrame', '/task5');
-        break;
-      case 'Task 6':
-        this.scene.game.events.emit('setFrame', '/task6');
-        break;
-      case 'Task 7':
-        this.scene.game.events.emit('setFrame', '/task7');
-        break;
+
+  private handleButtonClick(buttonText: string, taskKey: string | undefined) {
+    const taskStatus = this.getTaskStatus()
+    const isCompleted = taskKey ? taskStatus[taskKey] : false
+    if (isCompleted) {
+      console.log(`Viewing completed task: ${taskKey}`)
+    } else {
+      switch (buttonText) {
+        case 'Task 1':
+          this.scene.game.events.emit('setFrame', '/task1')
+          break
+        case 'Task 2':
+          this.scene.game.events.emit('setFrame', '/task2')
+          break
+        case 'Task 3':
+          this.scene.game.events.emit('setFrame', '/task3')
+          break
+        case 'Task 4':
+          this.scene.game.events.emit('setFrame', '/task4')
+          break
+        case 'Task 5':
+          this.scene.game.events.emit('setFrame', '/task5')
+          break
+        case 'Task 6':
+          this.scene.game.events.emit('setFrame', '/task6')
+          break
+        case 'Task 7':
+          this.scene.game.events.emit('setFrame', '/task7')
+          break
+      }
+      this.closePopup()
     }
-    this.closePopup();
   }
   private closePopup() {
     if (this.popup && !this.popup.list.includes(this.closeButton!)) {
-      // The popup is already closing or closed
       return
     }
 
@@ -438,6 +487,12 @@ export default class MyPlayer extends Player {
         }
         this.closeButton = undefined
         this.popupShown = false
+
+        // Reset the 'shown' status for all positions and set cooldown
+        this.popupPositions.forEach((pos) => {
+          pos.shown = false
+          this.popupCooldowns.set(pos.taskKey, this.scene.time.now + this.POPUP_COOLDOWN)
+        })
       },
     })
   }

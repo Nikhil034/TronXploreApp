@@ -181,8 +181,7 @@ export default function TronLinkWalletTerminology({
             </Paragraph>
 
             <ButtonGroup>
-              <Button onClick={()=>navigate('/continue')}>Let's do Activity</Button>
-              <Button>Exit</Button>
+              <Button onClick={()=>navigate('/task10_terminology')}>Continue</Button>
             </ButtonGroup>
           </Container>
         </ScrollableContent>
