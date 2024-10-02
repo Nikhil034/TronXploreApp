@@ -32,6 +32,7 @@ export default class MyPlayer extends Player {
   private popupTimer?: Phaser.Time.TimerEvent
   private popupCooldowns: Map<string, number> = new Map()
   private readonly POPUP_COOLDOWN = 5000 // 3 seconds cooldown
+  private glowingPoints: Phaser.GameObjects.Ellipse[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -104,8 +105,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_get_trx_task4',
       },
       {
-        x: 1095,
-        y: 530,
+        x: 1072,
+        y: 550,
         message:
           'Task 5: Send TRX to an Address. Go to the transfer station and try sending some TRX to a practice address.',
         shown: false,
@@ -139,41 +140,77 @@ export default class MyPlayer extends Player {
         taskKey: 'Popup-4',
       },
 
-      // {
-      //   x: 397,
-      //   y: 198,
-      //   message:
-      //     'Task 8: Mint TRC20 Tokens. Find the token minting station to create your own TRC20 tokens. Look for a coin press or token creation icon.',
-      // },
+      {
+        x: 405,
+        y: 195,
+        message:
+          'Task 8: Mint TRC20 Tokens. Find the token minting station to create your own TRC20 tokens. Look for a coin press or token creation icon.',
+        shown: false,
+        button: 'Task 8',
+        taskKey: 'abc',
+      },
 
-      // {
-      //   x: 552,
-      //   y: 275,
-      //   message:
-      //     'Task 9: Approve and Transfer TRC20 Tokens. Go to the token management console to learn how to approve and transfer your newly minted TRC20 tokens.',
-      // },
-      // {
-      //   x: 683,
-      //   y: 315,
-      //   message:
-      //     'Welcome to the Transaction Review and Certification Center! Here you can examine your blockchain activity and receive recognition for your achievements.',
-      // },
+      {
+        x: 692,
+        y: 313,
+        message:
+        'Welcome to the Transaction Review and Certification Center! Here you can examine your blockchain activity and receive recognition for your achievements.',
+        shown: false,
+        taskKey: 'Popup-5',
+      },
+      
+      {
+        x: 865,
+        y: 82,
+        message:
+          'Task 9: Approve and Transfer TRC20 Tokens. Go to the token management console to learn how to approve and transfer your newly minted TRC20 tokens.',
+          shown: false,
+          button: 'Task 9',
+          taskKey: 'abc',
+      },
+      {
+        x: 981,
+        y: 128,
+        message:
+          'Task 10: View Transaction Details. Locate the blockchain explorer terminal to review the details of your previous transactions.',
+          shown: false,
+          button: 'Task 10',
+          taskKey: 'abc',
+      },
 
-      // {
-      //   x: 867,
-      //   y: 82,
-      //   message:
-      //     'Task 10: View Transaction Details. Locate the blockchain explorer terminal to review the details of your previous transactions.',
-      // },
-
-      // {
-      //   x: 968,
-      //   y: 142,
-      //   message:
-      //     'Task 11: Claim Your Achievement Certificate. Find the certification kiosk to receive a special NFT certificate for completing all the tasks in the TRON Adventure.',
-      // },
     ]
     this.popupPositions.forEach((pos) => (pos.shown = false))
+    this.createGlowingPoints();
+  }
+
+  private createGlowingPoints() {
+    const points = [
+      { x: 223, y: 562 },
+      { x: 548, y: 553 },
+      { x: 524, y: 656 },
+      { x: 952, y: 313 },
+      { x: 1072, y: 550 },
+      { x: 1208, y: 789 },
+      { x: 855, y: 840 },
+      { x: 405, y: 195 },
+      { x: 865, y: 82 },
+      { x: 981, y: 128 },
+    ];
+
+    points.forEach(point => {
+      const glow = this.scene.add.ellipse(point.x, point.y, 15, 15, 0xff0000, 0.5);
+      
+      this.scene.tweens.add({
+        targets: glow,
+        alpha: 0.2,
+        scale: 1.2,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1
+      });
+
+      this.glowingPoints.push(glow);
+    });
   }
 
   setPlayerName(name: string) {
@@ -322,11 +359,15 @@ export default class MyPlayer extends Player {
     // Check for popup triggers
 
     this.checkPopupTriggers()
+    this.glowingPoints.forEach(point => {
+      point.setDepth(this.depth - 1);
+    });
   }
   private checkPopupTriggers() {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
+    // console.log("player position" ,playerX, playerY)
     const taskStatus = this.getTaskStatus()
     const currentTime = this.scene.time.now
 
@@ -456,6 +497,15 @@ export default class MyPlayer extends Player {
           break
         case 'Task 7':
           this.scene.game.events.emit('setFrame', '/task7')
+          break
+        case 'Task 8':
+          this.scene.game.events.emit('setFrame', '/task8')
+          break
+        case 'Task 9':
+          this.scene.game.events.emit('setFrame', '/task9')
+          break
+        case 'Task 10':
+          this.scene.game.events.emit('setFrame', '/task10')
           break
       }
       this.closePopup()
