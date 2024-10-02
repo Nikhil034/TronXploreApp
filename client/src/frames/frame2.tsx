@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import toast, { Toaster } from 'react-hot-toast';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -187,7 +190,9 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
     try {
       // Check if TronLink is installed
       if (typeof window.tronWeb === 'undefined') {
-        alert('TronLink wallet is not installed. Please install TronLink wallet and refresh the page.');
+        toast.error('TronLink wallet is not installed or not logged in.', {
+          position: 'top-center',
+        });
         return;
       }
 
@@ -198,19 +203,28 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
       if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
         const connectedAddress = window.tronWeb.defaultAddress.base58;
         setWalletAddress(connectedAddress);
-        console.log(`Connected: ${connectedAddress}`);
+        const username = Cookies.get('username');
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task2', { username: username,address:connectedAddress });
+        toast.success('Congratulations on completing your task! 🎉', {
+          position: 'top-center',
+        });   
       } else {
-        alert('Failed to connect. Please try again.');
+        toast.error('Failed to connect. Please try again!', {
+          position: 'top-center',
+        });
       }
     } catch (error) {
-      console.error('Error connecting to TronLink:', error);
-      alert('An error occurred while connecting. Please make sure TronLink is unlocked and try again.');
+      toast.error('An error occurred while connecting. Please make sure TronLink is unlocked and try again.', {
+        position: 'top-center',
+      });
+      
     }
   };
  
   return (
     <>
       <GlobalStyle />
+      <Toaster/>
       <PageWrapper>
       <BackButton onClick={onBack}>← Back to Game</BackButton>
       <ScrollableContent>

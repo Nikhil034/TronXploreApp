@@ -1,8 +1,12 @@
+import axios from 'axios'
 import { useState } from 'react'
+import toast, { Toaster } from 'react-hot-toast'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
+
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
 
   body {
     font-family: "Poppins", sans-serif;
@@ -29,6 +33,7 @@ const GlobalStyle = createGlobalStyle`
   }
 `
 
+
 const fadeIn = keyframes`
   to {
     opacity: 1;
@@ -42,11 +47,13 @@ const PageWrapper = styled.div`
   overflow: hidden;
 `
 
+
 const ScrollableContent = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 `
+
 
 const Container = styled.div`
   max-width: 650px;
@@ -61,10 +68,12 @@ const Container = styled.div`
   margin: auto;
 `
 
+
 const Text = styled.p`
   font-size: 14px;
   color: #ffffff;
 `
+
 
 const HighlightedText = styled(Text)`
   margin-bottom: 15px;
@@ -77,11 +86,13 @@ const HighlightedText = styled(Text)`
   overflow: hidden;
 `
 
+
 const List = styled.ol`
   padding-left: 20px;
   counter-reset: item;
   list-style-type: none;
 `
+
 
 const slideIn = keyframes`
   to {
@@ -90,6 +101,7 @@ const slideIn = keyframes`
   }
 `
 
+
 const ListItem = styled.li`
   margin-bottom: 20px;
   opacity: 0;
@@ -97,6 +109,7 @@ const ListItem = styled.li`
   animation: ${slideIn} 0.5s ease-out forwards;
   position: relative;
   padding-left: 40px;
+
 
   &::before {
     content: counter(item);
@@ -118,6 +131,7 @@ const ListItem = styled.li`
   }
 `
 
+
 const Title = styled.h2`
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
@@ -131,6 +145,7 @@ const Title = styled.h2`
   text-align: center;
 `
 
+
 const Subtitle = styled.h3`
   font-family: 'Orbitron', sans-serif;
   font-weight: 500;
@@ -141,6 +156,7 @@ const Subtitle = styled.h3`
   color: #ff6666;
 `
 
+
 const Input = styled.input`
   width: 100%;
   padding: 10px;
@@ -150,10 +166,12 @@ const Input = styled.input`
   color: #ffffff;
   border-radius: 5px;
 
+
   &::placeholder {
     color: rgba(255, 255, 255, 0.5);
   }
 `
+
 
 const Button = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
@@ -170,11 +188,13 @@ const Button = styled.button`
   transition: all 0.3s ease;
   margin: 20px 5px;
 
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(255, 0, 0, 0.15);
   }
 `
+
 
 const SentTitle = styled.p`
   font-family: 'Orbitron', sans-serif;
@@ -183,6 +203,7 @@ const SentTitle = styled.p`
   margin-bottom: 10px;
   margin-top: 30px;
 `
+
 
 const BackButton = styled.button`
   font-family: 'Orbitron', sans-serif;
@@ -197,19 +218,21 @@ const BackButton = styled.button`
   transition: background-color 0.3s;
   margin: 20px auto 0 20px;
 
+
   &:hover {
     background-color: #b91c1c;
   }
 `
 
-const ButtonCont = styled.button`
-  background: linear-gradient(45deg, #4caf50, #388e3c);
-  color: white;
+
+const ButtonCont = styled.button<{ disabled: boolean }>`
+  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
   border-radius: 25px;
   font-size: 18px;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   display: inline-block;
   align-items: center;
   width: fit-content;
@@ -217,55 +240,133 @@ const ButtonCont = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
+  position: relative;
+  opacity: ${({disabled})=>(disabled?0.5:1)};
+
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
+    box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
-`;
+
+
+  &::after {
+    content: ${({ disabled }) =>
+      disabled ? '"Fantastic job so far! Wrap up this task to unlock next! 🌈🔓"' : '""'};
+    position: absolute;
+    bottom: -80%; // Adjust as needed for the tooltip placement
+    left: 70%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 60, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: ${({ disabled }) =>
+      disabled ? 'none' : 'block'}; // Hide by default when not disabled
+    opacity: 0; // Start with opacity 0
+    transition: opacity 0.2s ease; // Smooth transition for opacity
+  }
+
+
+  &:hover::after {
+    display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
+    opacity: ${({ disabled }) =>
+      disabled ? '1' : '0'}; // Make it fully visible only when disabled
+  }
+`
+
 
 interface SendTRXProps {
   onBack: () => void
 }
+
 
 export default function SendTRX({ onBack }: SendTRXProps) {
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
   const [txnHash, setTxnHash] = useState('')
   const [showTxnHash, setShowTxnHash] = useState(false)
+  const [isValid, setIsValid] = useState(false)
+
 
   const handleSend = async () => {
-    if (!recipient || !amount) {
-      alert('Please enter both recipient address and amount.')
-      return
-    }
-
     try {
-      // Call the TronLink API to send TRX (Example, you need actual TronLink logic here)
-      const tronLink = (window as any).tronWeb
-      const transaction = await tronLink.transactionBuilder.sendTrx(
-        recipient,
-        tronLink.toSun(amount)
-      )
-      const signedTransaction = await tronLink.trx.sign(transaction)
-      const result = await tronLink.trx.sendRawTransaction(signedTransaction)
-
-      if (result.txid) {
-        alert('Transaction successfully sent!')
-        setTxnHash(result.txid)
-        setShowTxnHash(true)
+      if (window.tronWeb && window.tronWeb.ready) {
+        const tronLink = window.tronWeb;
+        const address = tronLink.defaultAddress.base58;
+  
+        if (!recipient || !amount) {
+          toast.error('Please enter both recipient address and amount.', {
+            position: 'top-center',
+          });
+          return;
+        }
+  
+        // Validate recipient address
+        if (!tronLink.isAddress(recipient)) {
+          toast.error('Invalid recipient address.', {
+            position: 'top-center',
+          });
+          return;
+        }
+  
+        // Validate amount
+        const amountInSun = tronLink.toSun(amount);
+        if (isNaN(amountInSun) || amountInSun <= 0) {
+          toast.error('Invalid amount.', {
+            position: 'top-center',
+          });
+          return;
+        }
+  
+        const transaction = await tronLink.transactionBuilder.sendTrx(
+          recipient,
+          amountInSun
+        );
+        const signedTransaction = await tronLink.trx.sign(transaction);
+        const result = await tronLink.trx.sendRawTransaction(signedTransaction);
+  
+        console.log(result);
+        console.log(result.txid);
+  
+        if (result.result) {
+          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task5', {
+            address: address,
+            recepient_address: recipient,
+            amount: amount,
+            txhash: result.txid
+          });
+          // console.log(response.data);
+          toast.success('Congratulations on completing your task! 🎉', {
+            position: 'top-center',
+          });
+          setRecipient("");
+          setAmount("");
+          setIsValid(true);
+        } else {
+          toast.error('Transaction Failed!', {
+            position: 'top-center',
+          });
+        }
       } else {
-        alert('Transaction failed.')
+        toast.error('TronLink wallet is not installed or not logged in.', {
+          position: 'top-center',
+        });
       }
     } catch (error) {
-      alert('An error occurred while sending TRX.')
-      console.error('Error: ', error)
+      console.error('Error: ', error);
+      toast.error('An error occurred while sending TRX.', {
+        position: 'top-center',
+      });
     }
-  }
+  };
 
   return (
     <>
       <GlobalStyle />
+      <Toaster/>
       <PageWrapper>
         <BackButton onClick={onBack}>← Back to Game</BackButton>
         <ScrollableContent>
@@ -275,6 +376,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               To safely test transactions, you can create a sub-account on TronLink. This allows you
               to test with smaller amounts of TRX without risking your main account.
             </HighlightedText>
+
 
             <List>
               <ListItem>Open your TronLink wallet and navigate to the "Accounts" tab.</ListItem>
@@ -288,11 +390,13 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               <ListItem>Use the sub-account's address for safe testing in this step.</ListItem>
             </List>
 
+
             <SentTitle>Now you can start sending TRX</SentTitle>
             <Text>
               Follow the steps below to safely send TRX using your TronLink wallet. If you created a
               sub-account for testing, you can use the sub-account's address here.
             </Text>
+
 
             <Subtitle>Step 1: Enter the Recipient's/Sub-account's Address</Subtitle>
             <Input
@@ -302,6 +406,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               onChange={(e) => setRecipient(e.target.value)}
             />
 
+
             <Subtitle>Step 2: Enter the Amount of TRX to Send</Subtitle>
             <Input
               type="number"
@@ -310,14 +415,18 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               onChange={(e) => setAmount(e.target.value)}
             />
 
+
             <Subtitle>Step 3: Confirm the Transaction</Subtitle>
             <Text>
               Once you press the "Send" button, a transaction will be initiated in your TronLink
               wallet. Please review the details carefully before signing the transaction.
             </Text>
 
+
             <Button onClick={handleSend}>Send TRX</Button>
-            <ButtonCont onClick={onBack}>Continue Your Journey</ButtonCont>
+            <ButtonCont disabled={!isValid} onClick={onBack}>
+              Continue Your Journey
+            </ButtonCont>
           </Container>
         </ScrollableContent>
       </PageWrapper>

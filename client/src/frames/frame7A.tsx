@@ -1,4 +1,6 @@
+import axios from 'axios'
 import { useState } from 'react'
+import toast, { Toaster } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 
@@ -191,9 +193,58 @@ const InfoListItem = styled.li`
   }
 `
 
-const ButtonCont = styled(Button)`
-  background: linear-gradient(45deg, #4caf50, #388e3c);
+const ButtonCont = styled.button<{ disabled: boolean }>`
+  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 18px;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  display: inline-block;
+  align-items: center;
+  width: fit-content;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin: 10px 5px;
+  position: relative;
+  opacity: ${({disabled})=>(disabled?0.5:1)};
+
+
+  &:hover {
+    transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
+    box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
+  }
+
+
+  &::after {
+    content: ${({ disabled }) =>
+      disabled ? '"You are doing great! unlock next task ✨"' : '""'};
+    position: absolute;
+    bottom: -80%; // Adjust as needed for the tooltip placement
+    left: 70%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 60, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: ${({ disabled }) =>
+      disabled ? 'none' : 'block'}; // Hide by default when not disabled
+    opacity: 0; // Start with opacity 0
+    transition: opacity 0.2s ease; // Smooth transition for opacity
+  }
+
+
+  &:hover::after {
+    display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
+    opacity: ${({ disabled }) =>
+      disabled ? '1' : '0'}; // Make it fully visible only when disabled
+  }
 `
+
 
 interface StakeTRXProps {
   onBack: () => void
@@ -204,6 +255,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
+  const [isValid, setIsValid] = useState(false)
 
   const handleStake = async () => {
     setError('')
@@ -268,7 +320,15 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
       console.log('Transaction receipt:', txnReceipt)
 
       if (txnReceipt.result) {
-        setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
+        // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
+      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task7', {address:userAddress,txhash:txnReceipt.txid,amount:amount});
+      // console.log("Response:",response.data);
+      toast.success('Congratulations on completing your task! 🎉.', {
+        position: 'top-center',
+        duration: 5000,
+      })
+      setSuccess('Succesfully staked energy you can check out your wallet.')
+      setIsValid(true);
       } else {
         console.error('Transaction failed:', txnReceipt)
         setError('Transaction failed. Please check the console for details and try again.')
@@ -291,6 +351,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
   return (
     <>
       <GlobalStyle />
+      <Toaster/>
       <PageWrapper>
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
@@ -336,13 +397,11 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
             />
 
             <StakeButton onClick={handleStake}>Stake TRX</StakeButton>
-            <ButtonCont onClick={() => navigate('/')}>Continue Your Journey</ButtonCont>
+            <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>Continue Your Journey</ButtonCont>
 
             {error && <Text style={{ color: 'red' }}>{error}</Text>}
             {success && <Text style={{ color: 'green' }}>{success}</Text>}
           </Container>
         </ScrollableContent>
       </PageWrapper>
-    </>
-  )
-}
+    </>)}

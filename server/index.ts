@@ -7,19 +7,25 @@ import { monitor } from '@colyseus/monitor'
 import { RoomType } from '../types/Rooms'
 import { SkyOffice } from './rooms/SkyOffice'
 import fs from 'fs'
+import userRoutes from './api/routes/user.routes'
+import connectDB from './api/config/db'
 
 const port = Number(process.env.PORT || 2567)
 const app = express()
 
+connectDB();
+
 const corsOptions = {
   origin: "*",
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST','PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization',],
   credentials: true,
 }
 
 app.use(cors(corsOptions))
 app.use(express.json())
+
+app.use('/api/users', userRoutes);
 
 let server;
 

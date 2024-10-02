@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import toast, { Toaster } from 'react-hot-toast';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -41,7 +44,6 @@ const ScrollableContent = styled.div`
   overflow-y: auto;
   padding: 20px;
 `;
-
 
 const Container = styled.div`
   max-width: 650px;
@@ -129,11 +131,10 @@ const ButtonAddLink = styled.a`
   cursor: pointer;
   display: flex;
   align-items: center;
-  width:fit-content;
+  width: fit-content;
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  // margin:0 10px;
   text-decoration: none;
 
   &:hover {
@@ -172,6 +173,7 @@ const ContinueButton = styled.button`
   font-weight: 600;
   transition: all 0.3s ease;
   text-transform: uppercase;
+  width:fit-content;
 
   &:hover {
     background: linear-gradient(45deg, #66bb6a, #43a047);
@@ -184,65 +186,88 @@ interface TronLinkGuideProps {
 }
 
 const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [taskCompleted, setTaskCompleted] = useState(false);
+  const [isdisable,setDisble]=useState(false);
 
-  const handleTaskCompletion = () => {
-    setTaskCompleted(true);
+  const handleTaskCompletion = async () => {
+    if (window.tronWeb && window.tronWeb.ready) {
+      console.log("TronLink wallet is available and ready.");
+      const username = Cookies.get('username');
+      try {
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task1', { username: username });
+        toast.success('Congratulations on completing your task! 🎉', {
+          position: 'top-center',
+        });
+        console.log(response.data);
+        setTaskCompleted(true); // Show "Continue Your Journey" button
+      } catch (error) {
+        toast.error('Failed to complete task. Please try again.', {
+          position: 'top-center',
+        });
+        console.error(error);
+      }
+    } else {
+      console.log("TronLink wallet is not installed or not logged in.");
+      toast.error('TronLink wallet is not available.', {
+        position: 'top-center',
+      });
+    }
   };
+
   return (
     <>
       <GlobalStyle />
+      <Toaster />
       <PageWrapper>
-      <BackButton onClick={onBack}>← Back</BackButton>
+        <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
-      <Container>
-        <Title>HOW TO CREATE A TRONLINK ACCOUNT</Title>
-        <OrderedList>
-          <ListItem>
-            Visit the official TronLink wallet page:{' '}
-            <Link href="https://www.tronlink.org/" target="_blank">
-              TronLink
-            </Link>
-          </ListItem>
-          <ListItem>
+          <Container>
+            <Title>HOW TO CREATE A TRONLINK ACCOUNT</Title>
+            <OrderedList>
+              <ListItem>
+                Visit the official TronLink wallet page:{' '}
+                <Link href="https://www.tronlink.org/" target="_blank">
+                  TronLink
+                </Link>
+              </ListItem>
+              <ListItem>
                 Click on{' '}
-                <Link href="https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec" target="_blank">
+                <Link
+                  href="https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec"
+                  target="_blank"
+                >
                   Add TronLink Extension
                 </Link>{' '}
                 to add the TronLink extension to your browser.
               </ListItem>
-          <ListItem>Click on 'Add to Chrome' to install the TronLink extension.</ListItem>
-          <ListItem>
-            Once installed, click on the TronLink icon in your browser toolbar.
-          </ListItem>
-          <ListItem>
-            Click on 'Create Account' and follow the steps to set up your new
-            account, including backing up your private key.
-          </ListItem>
-          <ListItem>You're now ready to use TronLink with the Tron blockchain!</ListItem>
-        </OrderedList>
-        <Note>
-          <strong>Note:</strong> Always keep your private key secure and never
-          share it with anyone.
-        </Note>
-        <ButtonAddLink
-          href="https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec"
-          target="_blank"
-          onClick={handleTaskCompletion}
-        >
-          Add TronLink Extension
-        </ButtonAddLink>
-        {taskCompleted && (
-              <>
-                <p className='mt-6'>If you have added the extension, click the button below to continue your journey:</p>
-                <ContinueButton onClick={()=>navigate('/')}>
+              <ListItem>Click on 'Add to Chrome' to install the TronLink extension.</ListItem>
+              <ListItem>
+                Once installed, click on the TronLink icon in your browser toolbar.
+              </ListItem>
+              <ListItem>
+                Click on 'Create Account' and follow the steps to set up your new account, including backing up your private key.
+              </ListItem>
+              <ListItem>You're now ready to use TronLink with the Tron blockchain!</ListItem>
+            </OrderedList>
+            <Note>
+              <strong>Note:</strong> Always keep your private key secure and never share it with anyone.
+            </Note>
+            <div className='w-full flex justify-center'>
+            <ButtonAddLink onClick={handleTaskCompletion} >
+              Check Wallet
+            </ButtonAddLink>
+            </div>
+            {taskCompleted && (
+              <div className='w-full flex items-center flex-col'>
+                <p className="mt-6 text-center">Ready to level up? 🚀 Check out the next challenge and continue your blockchain adventure! 💡🔗</p>
+                <ContinueButton onClick={() => navigate("/")}>
                   Continue Your Journey
                 </ContinueButton>
-              </>
+              </div>
             )}
-      </Container>
-      </ScrollableContent>
+          </Container>
+        </ScrollableContent>
       </PageWrapper>
     </>
   );
