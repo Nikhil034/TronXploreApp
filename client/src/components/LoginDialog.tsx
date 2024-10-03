@@ -19,6 +19,8 @@ import { setLoggedIn } from '../stores/UserStore'
 
 import phaserGame from '../PhaserGame'
 import Game from '../scenes/Game'
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const Wrapper = styled.form`
   position: fixed;
@@ -174,6 +176,15 @@ export default function LoginDialog() {
 
       else if (roomJoined) {
       console.log('Join! Name:', name, 'Avatar:', avatars[avatarIndex].name)
+      const response = await axios.post('https://api.tronxplore.blockchainbytesdaily.com/api/users/create', { username: name });
+      const { tasksStatus, message } = response.data;
+      // If the user exists, store the tasksStatus in localStorage
+      if (tasksStatus) {
+        localStorage.setItem('tasks_status', JSON.stringify(tasksStatus));
+        // console.log('User exists, tasksStatus saved to localStorage:', tasksStatus);
+      }
+      // console.log(message);
+      Cookies.set('username', name, { expires: 10 });
       game.registerKeys()
       game.myPlayer.setPlayerName(name)
       game.myPlayer.setPlayerTexture(avatars[avatarIndex].name)
@@ -212,7 +223,7 @@ export default function LoginDialog() {
           <TextField
             autoFocus
             fullWidth
-            label="Name"
+            label="Name Must be unique"
             variant="outlined"
             error={nameFieldEmpty}
             helperText={nameFieldEmpty && 'Name is required'}

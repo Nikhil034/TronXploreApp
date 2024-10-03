@@ -114,8 +114,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_send_trx_task5',
       },
       {
-        x: 1208,
-        y: 789,
+        x: 1166,
+        y: 828,
         message:
           'Task 6: Check Bandwidth and Energy Used. Find the resource monitor to see how much bandwidth and energy your transaction consumed.',
         shown: false,
@@ -181,6 +181,7 @@ export default class MyPlayer extends Player {
     ]
     this.popupPositions.forEach((pos) => (pos.shown = false))
     this.createGlowingPoints();
+    // this.updateGlowingPoints();
   }
 
   private createGlowingPoints() {
@@ -190,15 +191,16 @@ export default class MyPlayer extends Player {
       { x: 524, y: 656 },
       { x: 952, y: 313 },
       { x: 1072, y: 550 },
-      { x: 1208, y: 789 },
+      { x: 1166, y: 828 },
       { x: 855, y: 840 },
       { x: 405, y: 195 },
       { x: 865, y: 82 },
       { x: 981, y: 128 },
     ];
 
-    points.forEach(point => {
+    points.forEach((point,index) => {
       const glow = this.scene.add.ellipse(point.x, point.y, 15, 15, 0xff0000, 0.5);
+      // glow.setVisible(index === 0); 
       
       this.scene.tweens.add({
         targets: glow,
@@ -359,10 +361,44 @@ export default class MyPlayer extends Player {
     // Check for popup triggers
 
     this.checkPopupTriggers()
-    this.glowingPoints.forEach(point => {
-      point.setDepth(this.depth - 1);
-    });
+    // this.updateGlowingPoints();
   }
+
+  // private updateGlowingPoints() {
+  //   const currentTaskIndex = parseInt(localStorage.getItem('currentTaskIndex') || '0');
+
+  //   this.glowingPoints.forEach((point, index) => {
+  //     point.setVisible(index === currentTaskIndex);
+  //     point.setDepth(this.depth - 1);
+  //   });
+  // }
+
+  // private updateTaskStatusAndGlowingPoints(completedTaskKey: string) {
+  //   const taskStatus = this.getTaskStatus();
+  //   taskStatus[completedTaskKey] = true;
+  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus));
+
+  //   const taskKeys = [
+  //     'is_create_wallet_task1',
+  //     'is_connect_wallet_task2',
+  //     'is_sign_tx_task3',
+  //     'is_get_trx_task4',
+  //     'is_send_trx_task5',
+  //     'is_check_bandwidth_task6',
+  //     'is_get_energy_task7',
+  //     'abc', // Task 8
+  //     'abc', // Task 9
+  //     'abc'  // Task 10
+  //   ];
+
+  //   let nextTaskIndex = taskKeys.findIndex(key => !taskStatus[key]);
+  //   if (nextTaskIndex === -1) nextTaskIndex = taskKeys.length;
+
+  //   localStorage.setItem('currentTaskIndex', nextTaskIndex.toString());
+
+  //   this.updateGlowingPoints();
+  // }
+  
   private checkPopupTriggers() {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
@@ -372,11 +408,7 @@ export default class MyPlayer extends Player {
     const currentTime = this.scene.time.now
 
     for (const position of this.popupPositions) {
-      if (
-        !position.shown &&
-        Math.abs(playerX - position.x) <= 30 &&
-        Math.abs(playerY - position.y) <= 30
-      ) {
+      if (!position.shown && Math.abs(playerX - position.x) <= 30 && Math.abs(playerY - position.y) <= 30) {
         const cooldownEndTime = this.popupCooldowns.get(position.taskKey) || 0
         if (currentTime < cooldownEndTime) {
           continue // Skip this popup if it's still in cooldown
@@ -391,15 +423,16 @@ export default class MyPlayer extends Player {
         this.showPopup(message, position.x, position.y - 75, buttonText, position.taskKey)
         position.shown = true
         break
+
       }
     }
   }
 
   private getTaskStatus(): Record<string, boolean> {
-    const taskStatus = localStorage.getItem('tasks_status')
-    return taskStatus ? JSON.parse(taskStatus) : {}
+    const taskStatus = localStorage.getItem('tasks_status');
+    return taskStatus ? JSON.parse(taskStatus) : {};
   }
-  private showPopup(message: string, x: number, y: number, buttonText?: string, taskKey?: string) {
+  private showPopup(message: string, x: number, y: number, buttonText?:string,taskKey?:string) {
     this.popupShown = true
     console.log('again come increase x and y')
 
@@ -447,7 +480,7 @@ export default class MyPlayer extends Player {
       })
       actionButton.setOrigin(0.5)
       actionButton.setInteractive({ useHandCursor: true })
-      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText, taskKey))
+      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText,taskKey))
       elements.push(actionButton)
     }
 
@@ -469,35 +502,59 @@ export default class MyPlayer extends Player {
     // Make the popup disappear after 5 seconds if not closed manually
     // this.popupTimer = this.scene.time.delayedCall(7000, () => this.closePopup())
   }
-
   private handleButtonClick(buttonText: string, taskKey: string | undefined) {
-    const taskStatus = this.getTaskStatus()
-    const isCompleted = taskKey ? taskStatus[taskKey] : false
-    if (isCompleted) {
-      console.log(`Viewing completed task: ${taskKey}`)
-    } else {
-      switch (buttonText) {
-        case 'Task 1':
-          this.scene.game.events.emit('setFrame', '/task1')
-          break
-        case 'Task 2':
-          this.scene.game.events.emit('setFrame', '/task2')
-          break
-        case 'Task 3':
-          this.scene.game.events.emit('setFrame', '/task3')
-          break
-        case 'Task 4':
-          this.scene.game.events.emit('setFrame', '/task4')
-          break
-        case 'Task 5':
-          this.scene.game.events.emit('setFrame', '/task5')
-          break
-        case 'Task 6':
-          this.scene.game.events.emit('setFrame', '/task6')
-          break
-        case 'Task 7':
-          this.scene.game.events.emit('setFrame', '/task7')
-          break
+    const taskStatus = this.getTaskStatus();
+    const isCompleted = taskKey ? taskStatus[taskKey] : false;
+    if(isCompleted){
+      console.log(`Viewing completed task: ${taskKey}`);
+      switch (taskKey) {
+        case 'is_create_wallet_task1':
+              this.scene.game.events.emit('setFrame', '/task1');
+          break;
+        case 'is_connect_wallet_task2':
+              this.scene.game.events.emit('setFrame', '/task2');
+            break;
+        case 'is_sign_tx_task3':
+              this.scene.game.events.emit('setFrame', '/task3');
+              break;
+        case 'is_get_trx_task4':
+              this.scene.game.events.emit('setFrame', '/task4');
+              break;  
+        case 'is_send_trx_task5':
+                this.scene.game.events.emit('setFrame', '/task5');
+                break;
+        case 'is_check_bandwidth_task6':
+                this.scene.game.events.emit('setFrame', '/task6');
+                break;   
+        case 'is_get_energy_task7':
+                  this.scene.game.events.emit('setFrame', '/task7');
+                  break;                     
+
+      }
+    }
+    else{
+    switch (buttonText) {
+      case 'Task 1':
+        this.scene.game.events.emit('setFrame', '/task1');
+        break;
+      case 'Task 2':
+        this.scene.game.events.emit('setFrame', '/task2');
+        break;
+      case 'Task 3':
+        this.scene.game.events.emit('setFrame', '/task3');
+        break;
+      case 'Task 4':
+        this.scene.game.events.emit('setFrame', '/task4');
+        break;
+      case 'Task 5':
+        this.scene.game.events.emit('setFrame', '/task5');
+        break;
+      case 'Task 6':
+        this.scene.game.events.emit('setFrame', '/task6');
+        break;
+      case 'Task 7':
+        this.scene.game.events.emit('setFrame', '/task7');
+        break;
         case 'Task 8':
           this.scene.game.events.emit('setFrame', '/task8')
           break
@@ -507,43 +564,46 @@ export default class MyPlayer extends Player {
         case 'Task 10':
           this.scene.game.events.emit('setFrame', '/task10')
           break
-      }
-      this.closePopup()
     }
+    this.closePopup();
+    // const currentIndex = parseInt(localStorage.getItem('currentTaskIndex') || '0');
+    // localStorage.setItem('currentTaskIndex', (currentIndex + 1).toString());
+    // this.updateGlowingPoints();
   }
-  private closePopup() {
-    if (this.popup && !this.popup.list.includes(this.closeButton!)) {
-      return
-    }
+}
+private closePopup() {
+  if (this.popup && !this.popup.list.includes(this.closeButton!)) {
+    return;
+  }
 
-    if (this.popupTween) {
-      this.popupTween.stop()
-    }
+  if (this.popupTween) {
+    this.popupTween.stop();
+  }
 
-    if (this.popupTimer) {
-      this.popupTimer.remove()
-    }
+  if (this.popupTimer) {
+    this.popupTimer.remove();
+  }
 
-    this.popupTween = this.scene.tweens.add({
-      targets: this.popup,
-      scale: 0.8,
-      alpha: 0,
-      duration: 200,
-      ease: 'Back.easeIn',
-      onComplete: () => {
-        if (this.popup) {
-          this.popup.destroy()
-          this.popup = undefined
-        }
-        this.closeButton = undefined
-        this.popupShown = false
+  this.popupTween = this.scene.tweens.add({
+    targets: this.popup,
+    scale: 0.8,
+    alpha: 0,
+    duration: 200,
+    ease: 'Back.easeIn',
+    onComplete: () => {
+      if (this.popup) {
+        this.popup.destroy()
+        this.popup = undefined
+      }
+      this.closeButton = undefined
+      this.popupShown = false
 
-        // Reset the 'shown' status for all positions and set cooldown
-        this.popupPositions.forEach((pos) => {
-          pos.shown = false
-          this.popupCooldowns.set(pos.taskKey, this.scene.time.now + this.POPUP_COOLDOWN)
-        })
-      },
+      // Reset the 'shown' status for all positions and set cooldown
+      this.popupPositions.forEach((pos) => {
+        pos.shown = false
+        this.popupCooldowns.set(pos.taskKey, this.scene.time.now + this.POPUP_COOLDOWN)
+      })
+    },
     })
   }
 }

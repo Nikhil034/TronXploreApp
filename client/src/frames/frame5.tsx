@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import toast, { Toaster } from 'react-hot-toast'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
 
   body {
     font-family: "Poppins", sans-serif;
@@ -202,14 +205,17 @@ const BackButton = styled.button`
   }
 `
 
-const ButtonCont = styled.button`
-  background: linear-gradient(45deg, #4caf50, #388e3c);
-  color: white;
+const ButtonCont = styled.button<{ disabled: boolean }>`
+  background: ${({ disabled }) =>
+    disabled
+      ? 'linear-gradient(45deg, #4CAF50, #388E3C)'
+      : 'linear-gradient(45deg, #4caf50, #388e3c)'};
+  color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
   border-radius: 25px;
   font-size: 18px;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   display: inline-block;
   align-items: center;
   width: fit-content;
@@ -217,12 +223,39 @@ const ButtonCont = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
+  position: relative;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
+    box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
-`;
+
+  &::after {
+    content: ${({ disabled }) =>
+      disabled ? '"Fantastic job so far! Wrap up this task to unlock next! 🌈🔓"' : '""'};
+    position: absolute;
+    bottom: -80%; // Adjust as needed for the tooltip placement
+    left: 70%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 60, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: ${({ disabled }) =>
+      disabled ? 'none' : 'block'}; // Hide by default when not disabled
+    opacity: 0; // Start with opacity 0
+    transition: opacity 0.2s ease; // Smooth transition for opacity
+  }
+
+  &:hover::after {
+    display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
+    opacity: ${({ disabled }) =>
+      disabled ? '1' : '0'}; // Make it fully visible only when disabled
+  }
+`
 
 interface SendTRXProps {
   onBack: () => void
@@ -231,41 +264,101 @@ interface SendTRXProps {
 export default function SendTRX({ onBack }: SendTRXProps) {
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
-  const [txnHash, setTxnHash] = useState('')
-  const [showTxnHash, setShowTxnHash] = useState(false)
+  const [isValid, setIsValid] = useState(false)
+
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
+
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_send_trx_task5']) {
+      setIsValid(true)
+    }
+  }, [])
 
   const handleSend = async () => {
-    if (!recipient || !amount) {
-      alert('Please enter both recipient address and amount.')
-      return
-    }
-
     try {
-      // Call the TronLink API to send TRX (Example, you need actual TronLink logic here)
-      const tronLink = (window as any).tronWeb
-      const transaction = await tronLink.transactionBuilder.sendTrx(
-        recipient,
-        tronLink.toSun(amount)
-      )
-      const signedTransaction = await tronLink.trx.sign(transaction)
-      const result = await tronLink.trx.sendRawTransaction(signedTransaction)
+      if (window.tronWeb && window.tronWeb.ready) {
+        const tronLink = window.tronWeb
+        const address = tronLink.defaultAddress.base58
 
-      if (result.txid) {
-        alert('Transaction successfully sent!')
-        setTxnHash(result.txid)
-        setShowTxnHash(true)
+        if (!recipient || !amount) {
+          toast.error('Please enter both recipient address and amount.', {
+            position: 'top-center',
+          })
+          return
+        }
+
+        // Validate recipient address
+        if (!tronLink.isAddress(recipient)) {
+          toast.error('Invalid recipient address.', {
+            position: 'top-center',
+          })
+          return
+        }
+
+        // Validate amount
+        const amountInSun = tronLink.toSun(amount)
+        if (isNaN(amountInSun) || amountInSun <= 0) {
+          toast.error('Invalid amount.', {
+            position: 'top-center',
+          })
+          return
+        }
+
+        const transaction = await tronLink.transactionBuilder.sendTrx(recipient, amountInSun)
+        const signedTransaction = await tronLink.trx.sign(transaction)
+        const result = await tronLink.trx.sendRawTransaction(signedTransaction)
+
+        console.log(result)
+        console.log(result.txid)
+
+        if (result.result) {
+          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task5', {
+            address: address,
+            recepient_address: recipient,
+            amount: amount,
+            txhash: result.txid,
+          })
+          // console.log(response.data);
+          toast.success('Congratulations on completing your task! 🎉', {
+            position: 'top-center',
+          })
+          setRecipient('')
+          setAmount('')
+          setIsValid(true)
+          updateTaskStatus('is_send_trx_task5')
+        } else {
+          toast.error('Transaction Failed!', {
+            position: 'top-center',
+          })
+        }
       } else {
-        alert('Transaction failed.')
+        toast.error('TronLink wallet is not installed or not logged in.', {
+          position: 'top-center',
+        })
       }
     } catch (error) {
-      alert('An error occurred while sending TRX.')
       console.error('Error: ', error)
+      toast.error('An error occurred while sending TRX.', {
+        position: 'top-center',
+      })
     }
   }
 
   return (
     <>
       <GlobalStyle />
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back to Game</BackButton>
         <ScrollableContent>
@@ -317,7 +410,9 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             </Text>
 
             <Button onClick={handleSend}>Send TRX</Button>
-            <ButtonCont onClick={onBack}>Continue Your Journey</ButtonCont>
+            <ButtonCont disabled={!isValid} onClick={onBack}>
+              Continue Your Journey
+            </ButtonCont>
           </Container>
         </ScrollableContent>
       </PageWrapper>
