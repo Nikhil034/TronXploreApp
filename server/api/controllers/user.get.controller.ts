@@ -1,5 +1,16 @@
 import { Request, Response } from 'express'
+import Tronweb, { TronWeb } from 'tronweb';
 import User from '../models/user.model'
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+//  // Initialize TronWeb for the Nile Testnet
+ const tronWeb = new TronWeb({
+  fullHost: 'https://nile.trongrid.io',  // Nile Testnet RPC URL
+  privateKey: process.env.PRIVATE_KEY  
+});
+
 
 // Get tasks_status by username
 export const getTaskStatusByUsername = async (req: Request, res: Response) => {
@@ -22,13 +33,22 @@ export const getTaskStatusByUsername = async (req: Request, res: Response) => {
 // Get all users with specific fields: address, user_score, NFT_hash, completed_at (for leaderboard)
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({}, { address: 1, user_score: 1, NFT_hash: 1, completed_at: 1 })
-    res.status(200).json(users)
+    // Fetch users and sort by user_score (desc) and completed_at (asc)
+    const users = await User.find(
+      {}, 
+      { address: 1, user_score: 1, NFT_hash: 1, completed_at: 1 }
+    ).sort({ 
+      user_score: -1, // Sort by user_score in descending order (higher score first)
+      completed_at: 1 // Sort by completed_at in ascending order (earlier completion first)
+    });
+
+    res.status(200).json(users);
   } catch (error) {
-    console.error('Error fetching all users:', error)
-    res.status(500).json({ message: 'Server error' })
+    console.error('Error fetching all users:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 }
+
 
 // Get send_trx_txhash_shasta by address
 export const SendTrxTxhashShasta = async (req: Request, res: Response) => {
@@ -103,6 +123,78 @@ export const Trc20SendTxhashNileByAddress = async (req: Request, res: Response) 
     res.status(500).json({ message: 'Server error' })
   }
 }
+
+//fetch symbol of trc20 token address
+export const TRC20tokenAddress = async (req: Request, res: Response) => {
+
+  // ABI for TRC-20 functions to fetch token details
+  const abi = [
+    {
+      constant: true,
+      inputs: [],
+      name: "name",
+      outputs: [{ name: "", type: "string" }],
+      type: "function"
+    },
+    {
+      constant: true,
+      inputs: [],
+      name: "symbol",
+      outputs: [{ name: "", type: "string" }],
+      type: "function"
+    },
+    {
+      constant: true,
+      inputs: [],
+      name: "decimals",
+      outputs: [{ name: "", type: "uint8" }],
+      type: "function"
+    },
+    {
+      constant: true,
+      inputs: [],
+      name: "totalSupply",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function"
+    }
+  ];
+
+  try {
+    // Extract TRC-20 contract address from request parameters
+    const { trc20address } = req.params;
+
+    // Validate the token address (Tron addresses usually start with "T")
+    if (!tronWeb.isAddress(trc20address)) {
+      return res.status(400).json({ message: 'Invalid TRC-20 token address' });
+    }
+    
+    const defaultAddress = await tronWeb.defaultAddress.base58;
+    if (!defaultAddress) {
+      throw new Error('No default address set');
+    }
+
+    // Create a contract instance
+    const contract = await tronWeb.contract(abi, trc20address);
+
+    // Fetch token details
+    const name = await contract.methods.name().call();
+    const symbol = await contract.methods.symbol().call();
+    const decimals = await contract.methods.decimals().call();
+    const supply = await contract.methods.totalSupply().call();
+
+    // Send the response
+    res.status(200).json({
+      name,
+      symbol,
+      decimals: decimals.toString(),
+      supply:supply.toString() // Convert to string
+    });
+  } catch (error) {
+    console.error('Error fetching token details:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 
 // Get trc20_send_blockno_nile and trc20_send_bandwidth_nile by address
 export const Trc20SendBlockAndBandwidth = async (req: Request, res: Response) => {

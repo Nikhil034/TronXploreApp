@@ -275,53 +275,53 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
     try {
       const tronWeb = (window as any).tronWeb
       const userAddress = tronWeb.defaultAddress.base58
-      console.log('User address:', userAddress)
+      // console.log('User address:', userAddress)
 
       if (!tronWeb.isAddress(userAddress)) {
         throw new Error('Invalid TRON address')
       }
 
       const sunAmount = tronWeb.toSun(amount)
-      console.log('Staking amount in SUN:', sunAmount)
+      // console.log('Staking amount in SUN:', sunAmount)
 
       const balance = await tronWeb.trx.getBalance(userAddress)
-      console.log('Account balance (SUN):', balance)
-      console.log('Current network:', tronWeb.fullNode.host)
+      // console.log('Account balance (SUN):', balance)
+      // console.log('Current network:', tronWeb.fullNode.host)
 
       const accountResources = await tronWeb.trx.getAccountResources(userAddress)
-      console.log('Account resources:', accountResources)
+      // console.log('Account resources:', accountResources)
 
       if (accountResources.EnergyLimit > 0) {
-        console.log('Existing freeze detected. Please unfreeze before creating a new freeze.')
+        // console.log('Existing freeze detected. Please unfreeze before creating a new freeze.')
         setError('You have an existing freeze. Please unfreeze before staking again.')
         return
       }
 
       if (balance < sunAmount) {
-        console.log('Insufficient balance')
+        // console.log('Insufficient balance')
         setError('Insufficient balance to complete the staking transaction.')
         return
       }
 
-      console.log('Preparing freeze balance transaction...')
+      // console.log('Preparing freeze balance transaction...')
       const result = await tronWeb.transactionBuilder.freezeBalanceV2(
         sunAmount,
         'ENERGY',
         userAddress
       )
-      console.log('Freeze balance transaction prepared:', result)
+      // console.log('Freeze balance transaction prepared:', result)
 
-      console.log('Signing transaction...')
+      // console.log('Signing transaction...')
       const signedTxn = await tronWeb.trx.sign(result)
-      console.log('Transaction signed:', signedTxn)
+      // console.log('Transaction signed:', signedTxn)
 
       console.log('Broadcasting transaction...')
       const txnReceipt = await tronWeb.trx.sendRawTransaction(signedTxn)
-      console.log('Transaction receipt:', txnReceipt)
+      // console.log('Transaction receipt:', txnReceipt)
 
       if (txnReceipt.result) {
         // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
-      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task7', {address:userAddress,txhash:txnReceipt.txid,amount:amount});
+      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7', {address:userAddress,txhash:txnReceipt.txid,amount:amount});
       // console.log("Response:",response.data);
       toast.success('Congratulations on completing your task! 🎉.', {
         position: 'top-center',
@@ -340,7 +340,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
       } else if (error.error === 'CONTRACT_VALIDATE_ERROR') {
         console.error('Contract validation error details:', error)
         const decodedMessage = Buffer.from(error.message, 'hex').toString('utf8')
-        console.log('Decoded error message:', decodedMessage)
+        // console.log('Decoded error message:', decodedMessage)
         setError(`Contract validation error: ${decodedMessage}`)
       } else {
         setError('An error occurred while staking TRX: ' + error.message)

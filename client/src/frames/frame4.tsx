@@ -307,13 +307,13 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
   const HandleBalanceCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
       const address = (window as any).tronWeb.defaultAddress.base58
-      console.log(address);
-      const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/ws/users/${address}/send-trx-txhash-shasta`);
+      // console.log(address);
+      const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`);
       setLastBalance(response.data.balance_shasta);
       const balance = await window.tronWeb.trx.getBalance(address)
       setRecentBalance(balance);
       if(balance>response.data.balance_shasta){
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task4', { address: address});
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4', { address: address});
         // console.log("Response:",response.data);
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',

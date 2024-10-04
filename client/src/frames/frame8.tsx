@@ -1,4 +1,4 @@
-import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 
 const GlobalStyle = createGlobalStyle`
@@ -75,7 +75,6 @@ const Title = styled.h2`
 const Text = styled.p`
   font-size: 14px;
   color: #ffffff;
-  //   margin-bottom: 20px;
 `
 
 const CodeBlock = styled.pre`
@@ -101,7 +100,7 @@ const StrongText = styled.p`
   text-transform: uppercase;
   margin-bottom: 10px;
   margin-top: 20px;
-  font-weight: 500;
+  font-weight: 700;
 `
 
 const SmallText = styled.p`
@@ -113,7 +112,7 @@ const Button = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
   color: white;
   border: none;
-  padding: 8px 24px;
+  padding: 12px 24px;
   border-radius: 25px;
   font-size: 18px;
   cursor: pointer;
@@ -168,6 +167,7 @@ interface UnderstandingTRC20Props {
 }
 
 export default function UnderstandingTRC20({ onBack }: UnderstandingTRC20Props) {
+  const navigate = useNavigate()
   return (
     <>
       <GlobalStyle />
@@ -249,14 +249,41 @@ contract MyTRC20Token {
               </HighlightedText>
               <StrongText>Real-World Scenario:</StrongText>{' '}
               <HighlightedText>
-                Imagine launching a loyalty program with a token called "StoreCoin" (SCOIN) with a
-                total supply of 1,000,000, which users collect and redeem for rewards.
+                Imagine launching a loyalty program for a retail store where customers earn tokens
+                called StoreCoin (SCOIN) every time they make a purchase. These tokens are issued on
+                the Tron blockchain as a TRC-20 token.
+                <br />
+                <br />
+                <p className="text-xl font-semibold">Token Details:</p>
+                <br />• Token Name: StoreCoin
+                <br />• Symbol: SCOIN
+                <br />• Total Supply: 1,000,000 SCOIN
+                <br />
+                <br />
+                <p className="text-xl font-semibold">How it Works:</p>
+                <br />
+                1. Minting: When the loyalty program starts, the business mints 1,000,000 SCOIN
+                tokens. These are distributed to users as rewards when they make purchases, complete
+                tasks, or participate in promotions.
+                <br />
+                <br />
+                2. Earning SCOIN: Customers earn SCOIN for every purchase made. For example, for
+                every $100 spent, they get 100 SCOIN.
+                <br />
+                <br />
+                3. Redeeming Rewards: Users can redeem their collected SCOIN for various rewards,
+                like discounts, free products, or special offers. For instance, 500 SCOIN can be
+                redeemed for a $50 discount.
+                <br />
+                <br />
+                4. Transparency: Since SCOIN is a TRC-20 token on the Tron blockchain, every
+                transaction is transparent and can be verified on-chain.
+                <br />
               </HighlightedText>
             </div>
 
             <ButtonGroup>
-              <Button>Continue</Button>
-              <Button>Exit</Button>
+              <Button onClick={() => navigate('/task8_continue')}>Let's Do Activity</Button>
             </ButtonGroup>
           </Container>
         </ScrollableContent>

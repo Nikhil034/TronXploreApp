@@ -292,8 +292,8 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
 
         if (isValidSignature) {
           const balance = await window.tronWeb.trx.getBalance(address)
-          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task3', { address: address,balance:balance });
-          console.log("Response:",response.data);
+          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3', { address: address,balance:balance });
+          // console.log("Response:",response.data);
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
           });

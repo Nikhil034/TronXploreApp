@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tronxplore';
-// console.dir(MONGODB_URI);
+// console.dir(process.env.MONGODB_URI);
 
 const connectDB = async () => {
   try {

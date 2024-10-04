@@ -3,9 +3,12 @@ import styled, { keyframes } from 'styled-components'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import VisibilityIcon from '@mui/icons-material/Visibility'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import Snackbar from '@mui/material/Snackbar'
 import Tooltip from '@mui/material/Tooltip'
+import TextField from '@mui/material/TextField'
+import Pagination from '@mui/material/Pagination'
+import axios from 'axios' 
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translate(-50%, -48%); }
@@ -160,49 +163,88 @@ const truncateAddress = (address: string) => {
 }
 
 interface LeaderBoardEntry {
-  rank: number
-  address: string
-  score: number
-  nftHash: string
+  address: string | null; // Allowing null as observed in your log
+  user_score: number;
+  completed_at: string | null; // Allowing null as observed in your log
+  NFT_hash: string | null; // Allowing null as observed in your log
+  _id: string;
 }
 
 interface LeaderBoardProps {
   onClose: () => void
 }
 
+const SearchContainer = styled.div`
+  margin-bottom: 20px;
+`
+
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`
+
+interface LeaderBoardEntry {
+  address: string | null;
+  user_score: number;
+  completed_at: string | null;
+  _id: string;
+}
+
+interface LeaderBoardProps {
+  onClose: () => void
+}
+
+
 const LeaderBoard: React.FC<LeaderBoardProps> = ({ onClose }) => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderBoardEntry[]>([])
+  const [filteredData, setFilteredData] = useState<LeaderBoardEntry[]>([])
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const itemsPerPage = 5
 
   useEffect(() => {
-    // Simulated data fetch - replace with actual API call
     const fetchData = async () => {
-      const mockData: LeaderBoardEntry[] = [
-        { rank: 1, address: '0x1234567890123456789012345678901234567890', score: 1000, nftHash: 'QmA1B2C3D4' },
-        { rank: 2, address: '0x2345678901234567890123456789012345678901', score: 950, nftHash: 'QmB2C3D4E5' },
-        { rank: 3, address: '0x3456789012345678901234567890123456789012', score: 900, nftHash: 'QmC3D4E5F6' },
-        { rank: 4, address: '0x4567890123456789012345678901234567890123', score: 850, nftHash: 'QmD4E5F6G7' },
-        { rank: 5, address: '0x5678901234567890123456789012345678901234', score: 800, nftHash: 'QmE5F6G7H8' },
-        { rank: 6, address: '0x3456789012345678901234567890123456789012', score: 900, nftHash: 'QmC3D4E5F6' },
-        { rank: 7, address: '0x4567890123456789012345678901234567890123', score: 850, nftHash: 'QmD4E5F6G7' },
-        { rank: 9, address: '0x5678901234567890123456789012345678901234', score: 800, nftHash: 'QmE5F6G7H8' },
-      ]
-      setLeaderboardData(mockData)
+      const response = await axios.get<LeaderBoardEntry[]>('https://api.tronxplore.blockchainbytesdaily.com/api/users/users');
+      setLeaderboardData(response.data);
+      setFilteredData(response.data);
+      setTotalPages(Math.ceil(response.data.length / itemsPerPage));
     }
     fetchData()
   }, [])
 
-  const handleCopy = (text: string, type: 'address' | 'nftHash') => {
+  useEffect(() => {
+    const filtered = leaderboardData.filter(entry => 
+      entry.address && entry.address.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredData(filtered);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+    setPage(1);
+  }, [searchTerm, leaderboardData]);
+
+  const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      setSnackbarMessage(`${type === 'address' ? 'Address' : 'NFT Hash'} copied to clipboard`)
-      setSnackbarOpen(true)
-    })
+      setSnackbarMessage('Address copied to clipboard');
+      setSnackbarOpen(true);
+    });
   }
 
   const handleSnackbarClose = () => {
-    setSnackbarOpen(false)
+    setSnackbarOpen(false);
   }
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  }
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  }
+
+  const paginatedData = filteredData.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
     <LeaderBoardWrapper>
@@ -212,53 +254,66 @@ const LeaderBoard: React.FC<LeaderBoardProps> = ({ onClose }) => {
           <CloseIcon />
         </ActionButton>
       </LeaderBoardHeader>
+      <SearchContainer>
+        <TextField
+          fullWidth
+          variant="outlined"
+          label="Search by address"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+      </SearchContainer>
       <LeaderBoardTable>
         <thead>
           <tr>
             <TableHeader>Rank</TableHeader>
             <TableHeader>User Address</TableHeader>
             <TableHeader>Score</TableHeader>
-            <TableHeader>NFT Hash</TableHeader>
+            <TableHeader>Completed At</TableHeader>
             <TableHeader>Action</TableHeader>
           </tr>
         </thead>
         <tbody>
-          {leaderboardData.map((entry) => (
-            <TableRow key={entry.rank}>
-              <RankCell><Rank>{entry.rank}</Rank></RankCell>
+          {paginatedData.map((entry, index) => (
+            <TableRow key={entry._id}>
+              <RankCell><Rank>#{(page - 1) * itemsPerPage + index + 1}</Rank></RankCell>
               <TableCell>
                 <AddressContainer>
-                  <Address>{truncateAddress(entry.address)}</Address>
+                  <Address>{entry.address ? truncateAddress(entry.address) : 'No Address'}</Address>
                   <Tooltip title="Copy Address">
-                    <ActionButton onClick={() => handleCopy(entry.address, 'address')}>
-                      <ContentCopyIcon fontSize="small" />
-                    </ActionButton>
-                  </Tooltip>
-                  
-                </AddressContainer>
-              </TableCell>
-              <ScoreCell>{entry.score}</ScoreCell>
-              <TableCell>
-                <AddressContainer>
-                  <Address>{truncateAddress(entry.nftHash)}</Address>
-                  <Tooltip title="Copy NFT Hash">
-                    <ActionButton size="small" onClick={() => handleCopy(entry.nftHash, 'nftHash')}>
+                    <ActionButton onClick={() => entry.address && handleCopy(entry.address)} disabled={!entry.address}>
                       <ContentCopyIcon fontSize="small" />
                     </ActionButton>
                   </Tooltip>
                 </AddressContainer>
               </TableCell>
+              <ScoreCell>{entry.user_score}</ScoreCell>
               <TableCell>
-                <Tooltip title="View Details">
-                  <ActionButton size="small">
-                    <VisibilityIcon />
-                  </ActionButton>
-                </Tooltip>
+                {entry.completed_at ? new Date(entry.completed_at).toLocaleString() : 'Not Completed'}
+              </TableCell>
+              <TableCell>
+                {entry.completed_at ? (
+                  <Tooltip title="View in Explorer">
+                    <ActionButton size="small" onClick={() => window.open(`https://explorer.example.com/address/${entry.address}`, '_blank')}>
+                      <OpenInNewIcon />
+                    </ActionButton>
+                  </Tooltip>
+                ) : (
+                  <span>N/A</span>
+                )}
               </TableCell>
             </TableRow>
           ))}
         </tbody>
       </LeaderBoardTable>
+      <PaginationContainer>
+        <Pagination 
+          count={totalPages} 
+          page={page} 
+          onChange={handlePageChange} 
+          color="primary" 
+        />
+      </PaginationContainer>
       <Snackbar
         anchorOrigin={{
           vertical: 'bottom',

@@ -195,7 +195,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
       console.log("TronLink wallet is available and ready.");
       const username = Cookies.get('username');
       try {
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task1', { username: username });
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1', { username: username });
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
         });

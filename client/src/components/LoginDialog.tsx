@@ -176,14 +176,14 @@ export default function LoginDialog() {
 
       else if (roomJoined) {
       console.log('Join! Name:', name, 'Avatar:', avatars[avatarIndex].name)
-      const response = await axios.post('https://api.tronxplore.blockchainbytesdaily.com/ws/users/create', { username: name });
+      const response = await axios.post('https://api.tronxplore.blockchainbytesdaily.com/api/users/create', { username: name });
       const { tasksStatus, message } = response.data;
       // If the user exists, store the tasksStatus in localStorage
       if (tasksStatus) {
         localStorage.setItem('tasks_status', JSON.stringify(tasksStatus));
-        // console.log('User exists, tasksStatus saved to localStorage:', tasksStatus);
+        //console.log('User exists, tasksStatus saved to localStorage:', tasksStatus);
       }
-      // console.log(message);
+      console.log(message);
       Cookies.set('username', name, { expires: 10 });
       game.registerKeys()
       game.myPlayer.setPlayerName(name)

@@ -328,11 +328,11 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         const signedTransaction = await tronLink.trx.sign(transaction);
         const result = await tronLink.trx.sendRawTransaction(signedTransaction);
   
-        console.log(result);
-        console.log(result.txid);
+        // console.log(result);
+        // console.log(result.txid);
   
         if (result.result) {
-          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task5', {
+          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task5', {
             address: address,
             recepient_address: recipient,
             amount: amount,

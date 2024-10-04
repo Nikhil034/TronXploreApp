@@ -1,5 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
+import { Copy } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import toast, { Toaster } from 'react-hot-toast'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -35,6 +40,7 @@ const fadeIn = keyframes`
     transform: translateY(0);
   }
 `
+
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -87,24 +93,35 @@ const Subtitle = styled.h3`
 const Text = styled.p`
   font-size: 14px;
   color: #ffffff;
-`
-const TextTRX = styled.p`
-  font-size: 14px;
-  color: #ffffff;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 `
 
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+const AddressDisplay = styled.div`
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
 
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+const Address = styled.span`
+  font-size: 16px;
+`
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: #ff6666;
+  cursor: pointer;
+  padding: 5px;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #ff9999;
   }
 `
 
@@ -112,7 +129,7 @@ const Button = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
   color: white;
   border: none;
-  padding: 8px 24px;
+  padding: 12px 24px;
   border-radius: 25px;
   font-size: 18px;
   cursor: pointer;
@@ -128,57 +145,34 @@ const Button = styled.button`
     box-shadow: 0 6px 8px rgba(255, 0, 0, 0.15);
   }
 `
+
 const ButtonContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 10px auto;
+  margin: 20px auto;
 `
 
-const TxnHashWrapper = styled.div<{ visible: boolean }>`
-  display: ${(props) => (props.visible ? 'block' : 'none')};
-  margin-top: 20px;
+const TokenDetails = styled.div`
+  // margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 15px;
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 10px;
+  border-radius: 5px;
+  width: 100%;
 `
 
-const TxnHashDisplay = styled.input`
-  width: calc(100% - 100px);
-  margin-right: 10px;
+const ToketDetail = styled.div`
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `
-
-const CopyButton = styled(Button)`
-  width: 80px;
-`
-
-const Link = styled.a`
-  color: #ff6666;
-  text-decoration: none;
-  position: relative;
-  transition: color 0.3s ease;
-
-  &:hover {
-    color: #ff9999;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    bottom: -2px;
-    left: 0;
-    background-color: #ff3333;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-  }
-
-  &:hover::after {
-    transform: scaleX(1);
-  }
-`
-
 const BackButton = styled.button`
   font-family: 'Orbitron', sans-serif;
   font-weight: bold;
@@ -201,102 +195,99 @@ interface SendTRXProps {
   onBack: () => void
 }
 
+interface TokenDetails {
+  name: string
+  symbol: string
+  supply: string
+}
+
+
 export default function SendTRX({ onBack }: SendTRXProps) {
-  const [recipient, setRecipient] = useState('')
-  const [amount, setAmount] = useState('')
-  const [hash, setHash] = useState('')
-  const [txnHash, setTxnHash] = useState('')
-  const [showTxnHash, setShowTxnHash] = useState(false)
+  const [tokenDetails, setTokenDetails] = useState<TokenDetails | null>(null)
+  const [trc20address,Settrc20address]=useState("");
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = async () => {
-    if (!recipient || !amount) {
-      alert('Please enter both recipient address and amount.')
-      return
+  useEffect(()=>{
+    TRC20tokenaddress()
+  },[])
+  
+
+  const TRC20tokenaddress=async()=>{
+    if (!window.tronWeb || !window.tronWeb.ready) {
+      toast.error('TronLink wallet is not installed or not logged in.', {
+        position: 'top-center',
+      });
+      return;
     }
-
-    try {
-      // Call the TronLink API to send TRX (Example, you need actual TronLink logic here)
-      const tronLink = (window as any).tronWeb
-      const transaction = await tronLink.transactionBuilder.sendTrx(
-        recipient,
-        tronLink.toSun(amount)
-      )
-      const signedTransaction = await tronLink.trx.sign(transaction)
-      const result = await tronLink.trx.sendRawTransaction(signedTransaction)
-
-      if (result.txid) {
-        alert('Transaction successfully sent!')
-        setTxnHash(result.txid)
-        setShowTxnHash(true)
-      } else {
-        alert('Transaction failed.')
-      }
-    } catch (error) {
-      alert('An error occurred while sending TRX.')
-      console.error('Error: ', error)
-    }
+    const userAddress = window.tronWeb.defaultAddress.base58;
+    const tokenaddress=await axios(`http://localhost:2567/api/users/${userAddress}/trc20mintcontract`);
+    // console.log(tokenaddress.data.trc20mint_contract_address);
+    Settrc20address(tokenaddress.data.trc20mint_contract_address);
   }
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(txnHash)
-    alert('Transaction hash copied to clipboard!')
+  const handleSearch = async () => {
+    // Simulating token details fetch
+    setLoading(true);
+    const getdetails=await axios.get(`http://localhost:2567/api/users/${trc20address}`);
+    if(getdetails.data) {
+      setLoading(false)
+    }
+    const mockTokenDetails = {
+      name: getdetails.data.name,
+      symbol: getdetails.data.symbol,
+      supply: getdetails.data.supply
+    }
+    setTokenDetails(mockTokenDetails)
+  }
+
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(trc20address)
+    alert('Address copied to clipboard!')
   }
 
   return (
     <>
       <GlobalStyle />
+      <Toaster/>
       <PageWrapper>
         <BackButton onClick={onBack}>← Back to Game</BackButton>
         <ScrollableContent>
           <Container>
             <Title>Approve Tokens and Transfer TRC20</Title>
             <Text>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem, rerum. Alias, accusantium. Sit aperiam blanditiis necessitatibus, quam ullam mollitia odit?
+              You're about to send TRX to the address provided. Please review the details carefully
+              before proceeding.
             </Text>
 
-            <Subtitle>Enter the Recipient's Address</Subtitle>
-            <Input
-              type="text"
-              placeholder="Enter Tron address here..."
-              value={recipient}
-              //   onChange={(e) => setRecipient(e.target.value)}
-            />
-
-            <Subtitle>Enter the Amount of TRX to Send</Subtitle>
-            <Input
-              type="number"
-              placeholder="Enter amount of TRX..."
-              value={amount}
-              //   onChange={(e) => setAmount(e.target.value)}
-            />
+            <Subtitle>Your TRC20 Token Address</Subtitle>
+            <AddressDisplay>
+              <Address>{trc20address}</Address>
+              <IconButton onClick={handleCopyAddress} aria-label="Copy address">
+                <Copy size={20} />
+              </IconButton>
+            </AddressDisplay>
 
             <ButtonContainer>
-              <Button>Send Now</Button>
+              <Button onClick={handleSearch}> {loading ? <ScaleLoader height={15} width={4} color="white" /> : 'View Token Details'}</Button>
             </ButtonContainer>
 
-            <Subtitle>Transaction Hash</Subtitle>
-            <TextTRX>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque, facere qui voluptate corrupti ea harum.
-            </TextTRX>
-            <Input
-              type="text"
-              placeholder="Enter transaction hash"
-              value={hash}
-              //   onChange={(e) => setAmount(e.target.value)}
-            />
+            {tokenDetails && (
+              <div className="flex flex-col items-center m-0">
+                <TokenDetails>
+                  <Subtitle>Token Name : </Subtitle>
+                  <ToketDetail>{tokenDetails.name}</ToketDetail>
+                  <Subtitle>Token Symbol : </Subtitle>
+                  <ToketDetail>{tokenDetails.symbol}</ToketDetail>
+                  <Subtitle>Token Supply : </Subtitle>
+                  <ToketDetail>{tokenDetails.supply}</ToketDetail>
+                </TokenDetails>
 
-            <ButtonContainer>
-              <Button>Check</Button>
-            </ButtonContainer>
-
-            <TxnHashWrapper visible={showTxnHash}>
-              <Subtitle>Transaction Hash:</Subtitle>
-              <TxnHashDisplay type="text" value={txnHash} readOnly />
-              <CopyButton onClick={handleCopy}>Copy</CopyButton>
-              <Link href={`https://shasta.tronscan.org/#/transaction/${txnHash}`} target="_blank">
-                View on TronScan
-              </Link>
-            </TxnHashWrapper>
+                <Button onClick={() => navigate('/task9_continue')}>
+                  Let's sent your custome tokken
+                </Button>
+              </div>
+            )}
           </Container>
         </ScrollableContent>
       </PageWrapper>

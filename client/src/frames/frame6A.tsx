@@ -296,7 +296,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
   const handleCheck = async () => {
 
     if (window.tronWeb && window.tronWeb.ready) {
-      console.log("TronLink wallet is available and ready.");
+      // console.log("TronLink wallet is available and ready.");
       const tronWeb = window.tronWeb
       const currentNode = tronWeb.fullNode.host;
       if (currentNode.includes('api.trongrid.io')) {
@@ -359,7 +359,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
   const callApi = async (address:string) => {
     try {
       
-      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task6', {address:address})
+      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task6', {address:address})
       // console.log("Response:",response.data);
       toast.success('Congratulations on completing your task! 🎉.', {
         position: 'top-center',

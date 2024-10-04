@@ -5,6 +5,7 @@ import { SendTrxTxhashShasta } from '../controllers/user.get.controller'
 import { GetTrc20MintContract } from '../controllers/user.get.controller'
 import { Trc20SendTxhashNileByAddress } from '../controllers/user.get.controller'
 import { Trc20SendBlockAndBandwidth } from '../controllers/user.get.controller'
+import {TRC20tokenAddress} from "../controllers/user.get.controller"
 
 const router = express.Router()
 
@@ -31,5 +32,7 @@ router.get('/:address/trc20-send-txhash-nile', Trc20SendTxhashNileByAddress)
 
 // Route to get trc20_send_blockno_nile and trc20_send_bandwidth_nile by address
 router.get('/:address/trc20-send-blockno-bandwidth', Trc20SendBlockAndBandwidth)
+
+router.get('/:trc20address',TRC20tokenAddress)
 
 export default router

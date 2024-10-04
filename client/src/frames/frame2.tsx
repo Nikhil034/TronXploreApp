@@ -204,7 +204,7 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
         const connectedAddress = window.tronWeb.defaultAddress.base58;
         setWalletAddress(connectedAddress);
         const username = Cookies.get('username');
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/ws/users/user_task2', { username: username,address:connectedAddress });
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task2', { username: username,address:connectedAddress });
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
         });   
