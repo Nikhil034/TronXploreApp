@@ -33,6 +33,18 @@ export default class MyPlayer extends Player {
   private popupCooldowns: Map<string, number> = new Map()
   private readonly POPUP_COOLDOWN = 5000 // 3 seconds cooldown
   private glowingPoints: Phaser.GameObjects.Ellipse[] = [];
+  private readonly taskKeys = [
+    'is_create_wallet_task1',
+    'is_connect_wallet_task2',
+    'is_sign_tx_task3',
+    'is_get_trx_task4',
+    'is_send_trx_task5',
+    'is_check_bandwidth_task6',
+    'is_get_energy_task7',
+    'abc', // Task 8
+    'abc', // Task 9
+    'abc'  // Task 10
+  ];
 
   constructor(
     scene: Phaser.Scene,
@@ -62,16 +74,16 @@ export default class MyPlayer extends Player {
         taskKey: 'Popup-2',
       },
       {
-        x: 223,
-        y: 562,
+        x: 549,
+        y: 561,
         message: 'Your are reaching your first',
         shown: false,
         button: 'Task 1',
         taskKey: 'is_create_wallet_task1',
       },
       {
-        x: 548,
-        y: 553,
+        x: 951,
+        y: 333,
         message:
           'Task 2: Connect Wallet to a Website. Find the website icon and click on it to connect your newly created wallet.',
         shown: false,
@@ -79,8 +91,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_connect_wallet_task2',
       },
       {
-        x: 524,
-        y: 656,
+        x: 862,
+        y: 840,
         message:
           'Task 3: Sign a Transaction. Go to the transaction panel and try signing your first transaction.',
         shown: false,
@@ -96,8 +108,8 @@ export default class MyPlayer extends Player {
         taskKey: 'Popup-3',
       },
       {
-        x: 952,
-        y: 313,
+        x: 860,
+        y: 115,
         message:
           'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions. Look for a water tap or coin dispenser icon.',
         shown: false,
@@ -105,8 +117,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_get_trx_task4',
       },
       {
-        x: 1072,
-        y: 550,
+        x: 401,
+        y: 226,
         message:
           'Task 5: Send TRX to an Address. Go to the transfer station and try sending some TRX to a practice address.',
         shown: false,
@@ -114,8 +126,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_send_trx_task5',
       },
       {
-        x: 1166,
-        y: 828,
+        x: 1110,
+        y: 602,
         message:
           'Task 6: Check Bandwidth and Energy Used. Find the resource monitor to see how much bandwidth and energy your transaction consumed.',
         shown: false,
@@ -123,8 +135,8 @@ export default class MyPlayer extends Player {
         taskKey: 'is_check_bandwidth_task6',
       },
       {
-        x: 855,
-        y: 840,
+        x: 223,
+        y: 571,
         message:
           'Task 7: Get Energy for Use by Staking. Go to the staking station to learn how to stake TRX for energy.',
         shown: false,
@@ -141,8 +153,8 @@ export default class MyPlayer extends Player {
       },
 
       {
-        x: 405,
-        y: 195,
+        x: 723,
+        y: 149,
         message:
           'Task 8: Mint TRC20 Tokens. Find the token minting station to create your own TRC20 tokens. Look for a coin press or token creation icon.',
         shown: false,
@@ -160,8 +172,8 @@ export default class MyPlayer extends Player {
       },
       
       {
-        x: 865,
-        y: 82,
+        x: 360,
+        y: 269,
         message:
           'Task 9: Approve and Transfer TRC20 Tokens. Go to the token management console to learn how to approve and transfer your newly minted TRC20 tokens.',
           shown: false,
@@ -169,8 +181,8 @@ export default class MyPlayer extends Player {
           taskKey: 'abc',
       },
       {
-        x: 981,
-        y: 128,
+        x: 529,
+        y: 633,
         message:
           'Task 10: View Transaction Details. Locate the blockchain explorer terminal to review the details of your previous transactions.',
           shown: false,
@@ -181,26 +193,32 @@ export default class MyPlayer extends Player {
     ]
     this.popupPositions.forEach((pos) => (pos.shown = false))
     this.createGlowingPoints();
-    // this.updateGlowingPoints();
+    // Set up an interval to regularly check and update glowing points
+    this.scene.time.addEvent({
+      delay: 1000, // Check every second
+      callback: this.updateGlowingPoints,
+      callbackScope: this,
+      loop: true
+    });
   }
 
   private createGlowingPoints() {
     const points = [
-      { x: 223, y: 562 },
-      { x: 548, y: 553 },
-      { x: 524, y: 656 },
-      { x: 952, y: 313 },
-      { x: 1072, y: 550 },
-      { x: 1166, y: 828 },
-      { x: 855, y: 840 },
-      { x: 405, y: 195 },
-      { x: 865, y: 82 },
-      { x: 981, y: 128 },
+      { x: 549, y: 561 },
+      { x: 951, y: 333 },
+      { x: 862, y: 840 },
+      { x: 860, y: 115 },
+      { x: 401, y: 226 },
+      { x: 1110, y: 602 },
+      { x: 223, y: 571 },
+      { x: 723, y: 149 },
+      { x: 360, y: 269 },
+      { x: 529, y: 633 },
     ];
 
-    points.forEach((point,index) => {
+    points.forEach((point) => {
       const glow = this.scene.add.ellipse(point.x, point.y, 15, 15, 0xff0000, 0.5);
-      // glow.setVisible(index === 0); 
+      glow.setVisible(false); 
       
       this.scene.tweens.add({
         targets: glow,
@@ -213,6 +231,30 @@ export default class MyPlayer extends Player {
 
       this.glowingPoints.push(glow);
     });
+    this.updateGlowingPoints();
+  }
+
+  private updateGlowingPoints() {
+    const taskStatus = this.getTaskStatus();
+    let activePointIndex = -1;
+
+    // Find the first incomplete task
+    for (let i = 0; i < this.taskKeys.length; i++) {
+      if (!taskStatus[this.taskKeys[i]]) {
+        activePointIndex = i;
+        break;
+      }
+    }
+
+    // Update visibility of all points
+    this.glowingPoints.forEach((point, index) => {
+      point.setVisible(index === activePointIndex);
+    });
+  }
+
+  private getTaskStatus(): Record<string, boolean> {
+    const taskStatus = localStorage.getItem('tasks_status');
+    return taskStatus ? JSON.parse(taskStatus) : {};
   }
 
   setPlayerName(name: string) {
@@ -361,49 +403,13 @@ export default class MyPlayer extends Player {
     // Check for popup triggers
 
     this.checkPopupTriggers()
-    // this.updateGlowingPoints();
   }
-
-  // private updateGlowingPoints() {
-  //   const currentTaskIndex = parseInt(localStorage.getItem('currentTaskIndex') || '0');
-
-  //   this.glowingPoints.forEach((point, index) => {
-  //     point.setVisible(index === currentTaskIndex);
-  //     point.setDepth(this.depth - 1);
-  //   });
-  // }
-
-  // private updateTaskStatusAndGlowingPoints(completedTaskKey: string) {
-  //   const taskStatus = this.getTaskStatus();
-  //   taskStatus[completedTaskKey] = true;
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus));
-
-  //   const taskKeys = [
-  //     'is_create_wallet_task1',
-  //     'is_connect_wallet_task2',
-  //     'is_sign_tx_task3',
-  //     'is_get_trx_task4',
-  //     'is_send_trx_task5',
-  //     'is_check_bandwidth_task6',
-  //     'is_get_energy_task7',
-  //     'abc', // Task 8
-  //     'abc', // Task 9
-  //     'abc'  // Task 10
-  //   ];
-
-  //   let nextTaskIndex = taskKeys.findIndex(key => !taskStatus[key]);
-  //   if (nextTaskIndex === -1) nextTaskIndex = taskKeys.length;
-
-  //   localStorage.setItem('currentTaskIndex', nextTaskIndex.toString());
-
-  //   this.updateGlowingPoints();
-  // }
   
   private checkPopupTriggers() {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
-    // console.log("player position" ,playerX, playerY)
+    console.log("player position" ,playerX, playerY)
     const taskStatus = this.getTaskStatus()
     const currentTime = this.scene.time.now
 
@@ -428,10 +434,10 @@ export default class MyPlayer extends Player {
     }
   }
 
-  private getTaskStatus(): Record<string, boolean> {
-    const taskStatus = localStorage.getItem('tasks_status');
-    return taskStatus ? JSON.parse(taskStatus) : {};
-  }
+  // private getTaskStatus(): Record<string, boolean> {
+  //   const taskStatus = localStorage.getItem('tasks_status');
+  //   return taskStatus ? JSON.parse(taskStatus) : {};
+  // }
   private showPopup(message: string, x: number, y: number, buttonText?:string,taskKey?:string) {
     this.popupShown = true
     console.log('again come increase x and y')
@@ -499,8 +505,6 @@ export default class MyPlayer extends Player {
       ease: 'Back.easeOut',
     })
 
-    // Make the popup disappear after 5 seconds if not closed manually
-    // this.popupTimer = this.scene.time.delayedCall(7000, () => this.closePopup())
   }
   private handleButtonClick(buttonText: string, taskKey: string | undefined) {
     const taskStatus = this.getTaskStatus();

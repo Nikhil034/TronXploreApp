@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import styled from 'styled-components'
+import styled ,{keyframes}from 'styled-components'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'
@@ -103,7 +103,10 @@ const Left = styled.div`
 
 const Right = styled.div`
   margin-top: 20px;
-  width: 300px;
+  width: 480px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
   font-family: 'Poppins', sans-serif;
 
   .MuiTextField-root {
@@ -145,6 +148,60 @@ const StyledButton = styled(Button)`
     }
   }
 `
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+const NoticeWrapper = styled.div`
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: ${fadeIn} 0.3s ease-out;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    border-color: rgba(255, 0, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.1);
+  }
+`
+
+const IconWrapper = styled.div`
+  color: #ff0000;
+  flex-shrink: 0;
+  margin-top: 2px;
+`
+
+const NoticeContent = styled.div`
+  flex: 1;
+`
+
+const NoticeTitle = styled.span`
+  color: #ff0000;
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
+`
+
+const NoticeText = styled.span`
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+`
+
 
 const avatars = [
   { name: 'adam', img: Adam },
@@ -232,6 +289,30 @@ export default function LoginDialog() {
               setNameFieldEmpty(false) 
             }}
           />
+          <NoticeWrapper>
+      <IconWrapper>
+        <svg 
+          width="20" 
+          height="20" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2"
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      </IconWrapper>
+      <NoticeContent>
+        <NoticeTitle>Important</NoticeTitle>
+        <NoticeText>
+          Please make sure to use a unique name. When you come back, enter the same name to continue your adventure.
+        </NoticeText>
+      </NoticeContent>
+    </NoticeWrapper>
         </Right>
       </Content>
       <Bottom>
