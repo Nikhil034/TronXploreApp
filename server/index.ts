@@ -48,7 +48,7 @@ const gameServer = new Server({
 gameServer.define(RoomType.LOBBY, LobbyRoom)
 gameServer.define(RoomType.PUBLIC, SkyOffice, {
   name: 'Public Lobby',
-  description: 'For making friends and familiarizing yourself with the controls',
+  description: 'Prepare to embark on an exciting journey where fun meets tron blockchain!',
   password: null,
   autoDispose: false,
 })

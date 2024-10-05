@@ -159,7 +159,7 @@ export const GetTrx_Task4 = async (req: Request, res: Response) => {
       { address },
       {
         'tasks_status.is_get_trx_task4': true,
-        $inc: { user_score: 5 },
+        $inc: { user_score: 7 },
       },
       { new: true }
     )
@@ -189,7 +189,7 @@ export const SendTrx_Task5 = async (req: Request, res: Response) => {
         send_trx_amount_shasta: amount,
         send_trx_txhash_shasta: txhash,
         'tasks_status.is_send_trx_task5': true,
-        $inc: { user_score: 5 },
+        $inc: { user_score: 8 },
       },
       { new: true }
     )
@@ -249,7 +249,7 @@ export const StakeTrxAndEnergy_Task7 = async (req: Request, res: Response) => {
         stake_trx_txhash: txhash, // Update the transaction hash for staking
         stake_trx_amount: amount, // Update the staked amount
         'tasks_status.is_get_energy_task7': true, // Mark task 7 (get energy task) as complete
-        $inc: { user_score: 5 }, // Increment user_score by 5
+        $inc: { user_score: 9 }, // Increment user_score by 5
       },
       { new: true } // Return the updated document
     )
@@ -282,7 +282,7 @@ export const Trc20Mint_Task8 = async (req: Request, res: Response) => {
         trc20mint_tokensymbol: token_symbol,
         trc20mint_txhash: txhash,
         'tasks_status.is_trc20_mint_task8': true,
-        $inc: { user_score: 5 },
+        $inc: { user_score: 10 },
       },
       { new: true }
     )
@@ -314,7 +314,7 @@ export const Trc20Send_Task9 = async (req: Request, res: Response) => {
         trc20_send_blockno_nile: blockno,
         trc20_send_bandwidth_nile: bandwidth,
         'tasks_status.is_trc20_send_task9': true,
-        $inc: { user_score: 5 },
+        $inc: { user_score: 12 },
       },
       { new: true }
     )
@@ -343,7 +343,7 @@ export const ViewTransaction_Task10 = async (req: Request, res: Response) => {
       { address },
       {
         'tasks_status.is_view_transaction_task10': true,
-        $inc: { user_score: 5 },
+        $inc: { user_score: 10 },
       },
       { new: true }
     )
@@ -370,7 +370,7 @@ export const updateNftAndCompleteTask = async (req: Request, res: Response) => {
       {
         NFT_hash: nft_hash,
         completed_at: new Date(),
-        $inc: { user_score: 5 },
+        $inc: { user_score: 15 },
       },
       { new: true }
     )

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 import { Copy, ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 import { ScaleLoader } from 'react-spinners'
+import Cookies from 'js-cookie';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -157,6 +158,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
   &:hover {
     transform: translateY(-2px);
@@ -256,9 +258,28 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const [showVerificationSteps, setShowVerificationSteps] = useState(false)
   const [verificationUrl,setVerificationURL]=useState('');
   const [address,setUseraddress]=useState('');
-  // const verificationUrl = 'https://tronscan.io/#/address/TDcDHdH6cMKNdGGc9nfnWnEeb3qCnY6G9Z'
   const [verificationHash, setVerificationHash] = useState('')
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_trc20_send_task9; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        // setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
 
   const handleSend = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
@@ -272,7 +293,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
       try {
         const userAddress = window.tronWeb.defaultAddress.base58;
         setUseraddress(userAddress);
-        const contractAddress=await axios(`http://localhost:2567/api/users/${userAddress}/trc20mintcontract`);
+        const contractAddress=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${userAddress}/trc20mintcontract`);
   
         // TRC-20 standard ABI
         const trc20ABI = [
@@ -356,8 +377,8 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee;
             // console.log(`Energy Usage: ${energyUsage}`);
         }
-
-        const response = await axios.patch('http://localhost:2567/api/users/user_task9', { address: address,txhash:txnHash,blockno:blockNumber,bandwidth:energyUsage });
+        
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task9 ', { address: address,txhash:txnHash,blockno:blockNumber,bandwidth:energyUsage });
          toast.success("Congratulations on completing your task! 🎉", {
           position: 'top-center',
          });
@@ -406,7 +427,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             />
 
             <ButtonContainer>
-              <Button onClick={handleSend}>Send Now</Button>
+              <Button onClick={handleSend} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Send Now'}</Button>
             </ButtonContainer>
 
             {showVerificationSteps && (

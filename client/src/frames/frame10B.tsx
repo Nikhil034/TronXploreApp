@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
+import Cookies from 'js-cookie';
+import { taskCompleted } from '@reduxjs/toolkit/dist/listenerMiddleware/exceptions'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -112,6 +114,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
 
   &:hover {
@@ -276,6 +279,7 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
   const [energy,setEnergy]=useState('');
   const [isValid, setIsValid] = useState(false)
   const navigate = useNavigate()
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
 
   useEffect(()=>{
     if (!window.tronWeb || !window.tronWeb.ready) {
@@ -287,11 +291,30 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
     const userAddress = window.tronWeb.defaultAddress.base58;
     setAddress(userAddress);
   },[])
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_view_transaction_task10; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        setIsValid(taskStatus);
+        // setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
   
 
   const HandleTransaction=async()=>{
-    // alert('check here');
-    const getdetails=await axios.get(`http://localhost:2567/api/users/${address}/trc20-send-blockno-bandwidth`);
+    const getdetails=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`);
     // console.log(getdetails.data.trc20_send_blockno_nile)
     // console.log(getdetails.data.trc20_send_bandwidth_nile)
 
@@ -364,7 +387,7 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
             />
 
             <ButtonGroup>
-              <Button onClick={HandleTransaction}>Check it!</Button>
+              <Button onClick={HandleTransaction} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Check it!'}</Button>
               <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>Finish</ButtonCont>
             </ButtonGroup>
           </Container>

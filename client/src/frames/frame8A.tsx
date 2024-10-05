@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 import { useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 import { ScaleLoader } from 'react-spinners';
+import Cookies from 'js-cookie';
 
 
 
@@ -145,6 +146,7 @@ const Button = styled.button`
   transition: all 0.3s ease;
   margin: 0 10px;
   text-decoration: none;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
   &:hover {
     transform: translateY(-2px);
@@ -291,6 +293,28 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   const [txhash,Settxhash]=useState('');
   const [txhashlink,SettxhashLink]=useState('');
   const [loading, setLoading] = useState(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isValid, setIsValid] = useState(false)
+
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_trc20_mint_task8; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
 
   const handleMint = async () => {
     if (!window.tronWeb || !window.tronWeb.ready) {
@@ -395,8 +419,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
 
   const handleVerifyToken = async() => {
     setLoading(true);
-    const getdetails=await axios.get(`http://localhost:2567/api/users/${trc20_adddress}`);
-    const response = await axios.patch('http://localhost:2567/api/users/user_task8', { address: address,contract_address:trc20_adddress,token_symbol:getdetails.data.symbol,txhash:txhash });
+    const getdetails=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20_adddress}`);   
+    const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task8', { address: address,contract_address:trc20_adddress,token_symbol:getdetails.data.symbol,txhash:txhash });
     toast.success(`Your token with symbol ${getdetails.data.symbol} founded,Congratulations on completing your task! 🎉`, {
       position: 'top-center',
     });
@@ -492,10 +516,18 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               providing the same precision as TRX.
             </HighlightedText>
 
+              
             <ButtonGroup>
-              <Button onClick={handleMint}>{loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Mint Tokens'}</Button>
+             <Button onClick={handleMint} disabled={isTaskCompleted}>
+              {loading ? (
+               <ScaleLoader height={15} width={4} color="white" />
+               ) : (
+                 isTaskCompleted ? 'Task Completed' : 'Mint Token'
+                )}
+              </Button>
             </ButtonGroup>
 
+            
             {isTokenMinted && (
               <>
                 <ContractAddressBox>
@@ -533,7 +565,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
 
             {isTokenVerified && (
               <ButtonGroup>
-                <ButtonCont onClick={() => navigate('/')}>Continue Your Journey</ButtonCont>
+                <ButtonCont onClick={() => navigate('/')}>Continue Your Journe  y</ButtonCont>
               </ButtonGroup>
             )}
           </Container>

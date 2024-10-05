@@ -1,10 +1,9 @@
-import Tooltip from '@mui/material/Tooltip'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-
+import Cookies from 'js-cookie';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -35,13 +34,11 @@ const GlobalStyle = createGlobalStyle`
   }
 `
 
-
 const ScrollableContent = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 `
-
 
 const fadeIn = keyframes`
   to {
@@ -50,7 +47,6 @@ const fadeIn = keyframes`
   }
 `
 
-
 const slideIn = keyframes`
   to {
     opacity: 1;
@@ -58,14 +54,12 @@ const slideIn = keyframes`
   }
 `
 
-
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
 `
-
 
 const Container = styled.div`
   max-width: 650px;
@@ -80,7 +74,6 @@ const Container = styled.div`
   margin: auto;
 `
 
-
 const Title = styled.h2`
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
@@ -92,7 +85,6 @@ const Title = styled.h2`
   text-transform: uppercase;
 `
 
-
 const Subtitle = styled.h3`
   font-family: 'Orbitron', sans-serif;
   font-size: 24px;
@@ -102,11 +94,9 @@ const Subtitle = styled.h3`
   margin-bottom: 16px;
 `
 
-
 const TextTitle = styled.p`
   font-size: 14px;
 `
-
 
 const Text = styled.p`
   margin-bottom: 15px;
@@ -120,13 +110,11 @@ const Text = styled.p`
   font-size: 14px;
 `
 
-
 const List = styled.ol`
   padding-left: 20px;
   counter-reset: item;
   list-style-type: none;
 `
-
 
 const ListItem = styled.li`
   margin-bottom: 20px;
@@ -135,7 +123,6 @@ const ListItem = styled.li`
   animation: ${slideIn} 0.5s ease-out forwards;
   position: relative;
   padding-left: 40px;
-
 
   &::before {
     content: counter(item);
@@ -157,13 +144,11 @@ const ListItem = styled.li`
   }
 `
 
-
 const ButtonGroup = styled.div`
   display: flex;
   margin-top: 30px;
   gap: 10px;
 `
-
 
 const Button = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
@@ -179,7 +164,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
-
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
   &:hover {
     transform: translateY(-2px);
@@ -187,7 +172,10 @@ const Button = styled.button`
   }
 `
 const ButtonCont = styled.button<{ disabled: boolean }>`
-  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  background: ${({ disabled }) =>
+    disabled
+      ? 'linear-gradient(45deg, #4CAF50, #388E3C)'
+      : 'linear-gradient(45deg, #4caf50, #388e3c)'};
   color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
@@ -202,14 +190,12 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
   transition: all 0.3s ease;
   margin: 10px 5px;
   position: relative;
-  opacity: ${({disabled})=>(disabled?0.5:1)};
-
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
     transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
     box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
-
 
   &::after {
     content: ${({ disabled }) =>
@@ -232,14 +218,12 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
     transition: opacity 0.2s ease; // Smooth transition for opacity
   }
 
-
   &:hover::after {
     display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
     opacity: ${({ disabled }) =>
       disabled ? '1' : '0'}; // Make it fully visible only when disabled
   }
 `
-
 
 const BackButton = styled.button`
   font-family: 'Orbitron', sans-serif;
@@ -254,22 +238,57 @@ const BackButton = styled.button`
   transition: background-color 0.3s;
   margin: 20px auto 0 20px;
 
-
   &:hover {
     background-color: #b91c1c;
   }
 `
 
-
 interface TransactionSigningProps {
   onBack: () => void
 }
 
-
 export default function TransactionSigning({ onBack }: TransactionSigningProps) {
   const navigate = useNavigate()
   const [isValid, setIsValid] = useState(false)
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
 
+  // useEffect(() => {
+  //   // Check if the task is already completed when component mounts
+  //   const taskStatus = getTaskStatus()
+  //   if (taskStatus['is_sign_tx_task3']) {
+  //     setIsValid(true)
+  //   }
+  // }, [])
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_sign_tx_task3; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
+
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+
+  // const updateTaskStatus = (taskKey: string) => {
+  //   const taskStatus = getTaskStatus()
+  //   taskStatus[taskKey] = true
+  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  // }
 
   const handleSignTransaction = async () => {
     try {
@@ -280,7 +299,6 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
         const signedMessage = await (window as any).tronWeb.trx.sign(messageHex)
         // console.log('Signed message:', signedMessage)
 
-
         const address = (window as any).tronWeb.defaultAddress.base58
         const isValidSignature = (window as any).tronWeb.trx.verifyMessage(
           messageHex,
@@ -289,31 +307,36 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
         )
         // console.log('Signature is valid:', isValidSignature)
 
-
         if (isValidSignature) {
           const balance = await window.tronWeb.trx.getBalance(address)
-          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3', { address: address,balance:balance });
-          // console.log("Response:",response.data);
+          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3', {
+            address: address,
+            balance: balance,
+          })
+          console.log('Response:', response.data)
+
+          // Update localStorage
+          // updateTaskStatus('is_sign_tx_task3')
+
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
-          });
+          })
           setIsValid(true)
         } else {
           toast.error('Message signed, but verification failed. Check the console for details!', {
             position: 'top-center',
-          });
+          })
         }
       } else {
         toast.error('Wallet not detected or need to unlock!', {
           position: 'top-center',
-        });
+        })
       }
     } catch (error: any) {
       console.error('Error details:', error)
       alert('Error: ' + error.message)
     }
   }
-
 
   return (
     <>
@@ -329,13 +352,11 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
               Signing transactions is crucial to verify and authorize actions on the blockchain.
             </TextTitle>
 
-
             <Subtitle>What is Signing a Transaction?</Subtitle>
             <Text>
               Signing a transaction is a way to prove ownership and approve blockchain actions using
               your private key. Without signing, the network won't allow the transaction to proceed.
             </Text>
-
 
             <Subtitle>Why is Signing Important?</Subtitle>
             <Text>
@@ -344,11 +365,11 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
               <br />
               <br />
               <b>
-                Note :- Instead of signing a real transaction, which could involve real money or
-                tokens, we are signing a message
+                Note: On this platform, we are not conducting real transactions that involve actual
+                funds or tokens. Instead, we are signing a simple message for learning purposes.
+                This ensures that you can safely practice signing without risking any assets.
               </b>
             </Text>
-
 
             <Subtitle>How to Sign Using TronLink</Subtitle>
             <List>
@@ -359,11 +380,10 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
               <ListItem>Click "Confirm" to sign the transaction.</ListItem>
             </List>
 
-
             <ButtonGroup>
-              <Button onClick={handleSignTransaction}>Sign Transaction</Button>
+              <Button onClick={handleSignTransaction} disabled={isTaskCompleted}> {isTaskCompleted?'Task Completed':'Sign Transaction'}</Button>
               <ButtonCont disabled={!isValid} onClick={() => navigate('/')}>
-                Continue Your Journey
+              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
           </Container>

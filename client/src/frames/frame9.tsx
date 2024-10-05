@@ -221,7 +221,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
       return;
     }
     const userAddress = window.tronWeb.defaultAddress.base58;
-    const tokenaddress=await axios(`http://localhost:2567/api/users/${userAddress}/trc20mintcontract`);
+    const tokenaddress=await axios.get(` https://api.tronxplore.blockchainbytesdaily.com/api/users/${userAddress}/trc20mintcontract`);
     // console.log(tokenaddress.data.trc20mint_contract_address);
     Settrc20address(tokenaddress.data.trc20mint_contract_address);
   }
@@ -229,7 +229,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const handleSearch = async () => {
     // Simulating token details fetch
     setLoading(true);
-    const getdetails=await axios.get(`http://localhost:2567/api/users/${trc20address}`);
+    const getdetails=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20address}`);
     if(getdetails.data) {
       setLoading(false)
     }

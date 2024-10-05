@@ -1,8 +1,8 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-
+import Cookies from 'js-cookie';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -33,14 +33,12 @@ const GlobalStyle = createGlobalStyle`
   }
 `
 
-
 const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
   }
 `
-
 
 const slideIn = keyframes`
   to {
@@ -55,13 +53,11 @@ const PageWrapper = styled.div`
   overflow: hidden;
 `
 
-
 const ScrollableContent = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 `
-
 
 const Container = styled.div`
   max-width: 650px;
@@ -76,7 +72,6 @@ const Container = styled.div`
   margin: auto;
 `
 
-
 const Title = styled.h2`
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
@@ -89,7 +84,6 @@ const Title = styled.h2`
   text-align: center;
   margin-bottom: 20px;
 `
-
 
 const Subtitle = styled.h3`
   font-family: 'Orbitron', sans-serif;
@@ -104,12 +98,10 @@ const Subtitle = styled.h3`
   text-align: left;
 `
 
-
 const Text = styled.p`
   font-size: 14px;
   color: #ffffff;
 `
-
 
 const HighlightedText = styled(Text)`
   margin-bottom: 15px;
@@ -122,7 +114,6 @@ const HighlightedText = styled(Text)`
   overflow: hidden;
 `
 
-
 const List = styled.ol`
   padding-left: 20px;
   counter-reset: item;
@@ -134,7 +125,6 @@ const ButtonGroup = styled.div`
   gap: 10px;
 `
 
-
 const ListItem = styled.li`
   margin-bottom: 20px;
   opacity: 0;
@@ -142,7 +132,6 @@ const ListItem = styled.li`
   animation: ${slideIn} 0.5s ease-out forwards;
   position: relative;
   padding-left: 40px;
-
 
   &::before {
     content: counter(item);
@@ -164,9 +153,11 @@ const ListItem = styled.li`
   }
 `
 
-
 const ButtonCont = styled.button<{ disabled: boolean }>`
-  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  background: ${({ disabled }) =>
+    disabled
+      ? 'linear-gradient(45deg, #4CAF50, #388E3C)'
+      : 'linear-gradient(45deg, #4caf50, #388e3c)'};
   color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
@@ -181,14 +172,12 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
   transition: all 0.3s ease;
   margin: 10px 5px;
   position: relative;
-  opacity: ${({disabled})=>(disabled?0.5:1)};
-
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
     transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
     box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
-
 
   &::after {
     content: ${({ disabled }) =>
@@ -209,14 +198,12 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
     transition: opacity 0.2s ease; // Smooth transition for opacity
   }
 
-
   &:hover::after {
     display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
     opacity: ${({ disabled }) =>
       disabled ? '1' : '0'}; // Make it fully visible only when disabled
   }
 `
-
 
 const Button = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
@@ -232,7 +219,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
-
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
   &:hover {
     transform: translateY(-2px);
@@ -240,18 +227,15 @@ const Button = styled.button`
   }
 `
 
-
 const Link = styled.a`
   color: #ff6666;
   text-decoration: none;
   position: relative;
   transition: color 0.3s ease;
 
-
   &:hover {
     color: #ff9999;
   }
-
 
   &::after {
     content: '';
@@ -265,12 +249,10 @@ const Link = styled.a`
     transition: transform 0.3s ease;
   }
 
-
   &:hover::after {
     transform: scaleX(1);
   }
 `
-
 
 const BackButton = styled.button`
   font-family: 'Orbitron', sans-serif;
@@ -285,60 +267,97 @@ const BackButton = styled.button`
   transition: background-color 0.3s;
   margin: 20px auto 0 20px;
 
-
   &:hover {
     background-color: #b91c1c;
   }
 `
 
-
 interface GettingTRXProps {
   onBack: () => void
 }
 
-
 export default function GettingTRX({ onBack }: GettingTRXProps) {
   const [isValid, setIsValid] = useState(false)
-  const [last_balance,setLastBalance]=useState(0);
-  const [recent_balance,setRecentBalance]=useState(0);
-  const [Isshow,setShow]=useState(false);
+  const [last_balance, setLastBalance] = useState(0)
+  const [recent_balance, setRecentBalance] = useState(0)
+  const [Isshow, setShow] = useState(false)
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
 
+  // const getTaskStatus = (): Record<string, boolean> => {
+  //   const taskStatus = localStorage.getItem('tasks_status')
+  //   return taskStatus ? JSON.parse(taskStatus) : {}
+  // }
+
+  // const updateTaskStatus = (taskKey: string) => {
+  //   const taskStatus = getTaskStatus()
+  //   taskStatus[taskKey] = true
+  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  // }
+
+  // useEffect(() => {
+  //   // Check if the task is already completed when component mounts
+  //   const taskStatus = getTaskStatus()
+  //   if (taskStatus['is_trx_balance_task4']) {
+  //     setIsValid(true)
+  //   }
+  // }, [])
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_get_trx_task4; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
 
   const HandleBalanceCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
       const address = (window as any).tronWeb.defaultAddress.base58
-      // console.log(address);
-      const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`);
-      setLastBalance(response.data.balance_shasta);
+      // console.log(address)
+      const response = await axios.get(
+        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`
+      )
+      setLastBalance(response.data.balance_shasta)
       const balance = await window.tronWeb.trx.getBalance(address)
-      setRecentBalance(balance);
-      if(balance>response.data.balance_shasta){
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4', { address: address});
+      setRecentBalance(balance)
+      if (balance > response.data.balance_shasta) {
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4', {
+          address: address,
+        })
         // console.log("Response:",response.data);
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
-        });
-        setIsValid(true);
-      }else{
+        })
+        setIsValid(true)
+        // updateTaskStatus('is_get_trx_task4')
+      } else {
         toast.error('Stil balance is equal or not greater then your recorded last balance !', {
           position: 'top-center',
-        });
+        })
       }
-      setShow(true);
-
-  } else {
-    toast.error('TronLink wallet is not installed or not logged in.', {
-      position: 'top-center',
-    });
+      setShow(true)
+    } else {
+      toast.error('TronLink wallet is not installed or not logged in.', {
+        position: 'top-center',
+      })
+    }
   }
-    
-  }
-
 
   return (
     <>
       <GlobalStyle />
-      <Toaster/>
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back to Game</BackButton>
         <ScrollableContent>
@@ -349,14 +368,12 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
               transaction fees, smart contract interactions, and much more.
             </Text>
 
-
             <Subtitle>What is Shasta Testnet?</Subtitle>
             <HighlightedText>
               Shasta Testnet is a testing environment for Tron developers. It allows you to use TRX
               for free in a simulated environment without affecting the main Tron network. It's
               great for learning and experimenting without any risk.
             </HighlightedText>
-
 
             <Subtitle>Steps to Get TRX on Shasta Testnet</Subtitle>
             <List>
@@ -382,20 +399,23 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
               </ListItem>
             </List>
 
-
             <ButtonGroup>
-              <Button onClick={HandleBalanceCheck}>Check Balance</Button>
+              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Check Balance'}</Button>
               <ButtonCont disabled={!isValid} onClick={onBack}>
-                Continue Your Journey
+              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
-            {Isshow && <div className='mt-10 '>
-             <h1>Last Balance (TRX) : {last_balance}</h1>
-             <h1>Now Balance (TRX) :  {recent_balance}</h1>
-             <br/>
-             <p>Note :- In order to complete this task your balance should be greater then last sign message time balance</p>
-            </div>
-            }
+            {Isshow && (
+              <div className="mt-10 ">
+                <h1>Last Balance (TRX) : {last_balance}</h1>
+                <h1>Now Balance (TRX) : {recent_balance}</h1>
+                <br />
+                <p>
+                  Note :- In order to complete this task your balance should be greater then last
+                  sign message time balance
+                </p>
+              </div>
+            )}
           </Container>
         </ScrollableContent>
       </PageWrapper>

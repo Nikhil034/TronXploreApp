@@ -1,8 +1,9 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
+import Cookies from 'js-cookie';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -131,6 +132,7 @@ const Button = styled.button`
 
 const StakeButton = styled(Button)`
   background: linear-gradient(45deg, #ff0000, #cc0000);
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 `
 
 const BackButton = styled.button`
@@ -194,7 +196,10 @@ const InfoListItem = styled.li`
 `
 
 const ButtonCont = styled.button<{ disabled: boolean }>`
-  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  background: ${({ disabled }) =>
+    disabled
+      ? 'linear-gradient(45deg, #4CAF50, #388E3C)'
+      : 'linear-gradient(45deg, #4caf50, #388e3c)'};
   color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
@@ -209,18 +214,15 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
   transition: all 0.3s ease;
   margin: 10px 5px;
   position: relative;
-  opacity: ${({disabled})=>(disabled?0.5:1)};
-
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
     transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
     box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
 
-
   &::after {
-    content: ${({ disabled }) =>
-      disabled ? '"You are doing great! unlock next task ✨"' : '""'};
+    content: ${({ disabled }) => (disabled ? '"You are doing great! unlock next task ✨"' : '""')};
     position: absolute;
     bottom: -80%; // Adjust as needed for the tooltip placement
     left: 70%;
@@ -237,14 +239,12 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
     transition: opacity 0.2s ease; // Smooth transition for opacity
   }
 
-
   &:hover::after {
     display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
     opacity: ${({ disabled }) =>
       disabled ? '1' : '0'}; // Make it fully visible only when disabled
   }
 `
-
 
 interface StakeTRXProps {
   onBack: () => void
@@ -256,6 +256,46 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
   const [isValid, setIsValid] = useState(false)
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+
+  // useEffect(() => {
+  //   // Check if the task is already completed when component mounts
+  //   const taskStatus = getTaskStatus()
+  //   if (taskStatus['is_get_energy_task7']) {
+  //     setIsValid(true)
+  //   }
+  // }, [])
+
+  // const getTaskStatus = (): Record<string, boolean> => {
+  //   const taskStatus = localStorage.getItem('tasks_status')
+  //   return taskStatus ? JSON.parse(taskStatus) : {}
+  // }
+
+  // const updateTaskStatus = (taskKey: string) => {
+  //   const taskStatus = getTaskStatus()
+  //   taskStatus[taskKey] = true
+  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  // }
+
+  useEffect(() => {
+    // Fetch the task status when the component loads
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        // console.log(username);
+        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+        const taskStatus = response.data.is_get_energy_task7; // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        setIsValid(taskStatus);
+      } catch (error) {
+        console.error('Error fetching task status:', error);
+        toast.error('Failed to fetch task status.');
+      }
+    };
+    fetchTaskStatus();
+  }, []); // Empty dependency array to run only on component mount
+ 
+
 
   const handleStake = async () => {
     setError('')
@@ -321,14 +361,19 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
 
       if (txnReceipt.result) {
         // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
-      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7', {address:userAddress,txhash:txnReceipt.txid,amount:amount});
-      // console.log("Response:",response.data);
-      toast.success('Congratulations on completing your task! 🎉.', {
-        position: 'top-center',
-        duration: 5000,
-      })
-      setSuccess('Succesfully staked energy you can check out your wallet.')
-      setIsValid(true);
+        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7', {
+          address: userAddress,
+          txhash: txnReceipt.txid,
+          amount: amount,
+        })
+        // console.log("Response:",response.data);
+        toast.success('Congratulations on completing your task! 🎉.', {
+          position: 'top-center',
+          duration: 5000,
+        })
+        setSuccess('Succesfully staked energy you can check out your wallet.')
+        setIsValid(true)
+        // updateTaskStatus('is_get_energy_task7')
       } else {
         console.error('Transaction failed:', txnReceipt)
         setError('Transaction failed. Please check the console for details and try again.')
@@ -351,13 +396,12 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
   return (
     <>
       <GlobalStyle />
-      <Toaster/>
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
           <Container>
             <Title>Stake TRX for Energy</Title>
-            {/* <Text>Stake TRX to gain Energy that can be used for executing smart contracts. Enter the amount of TRX you wish to stake and click "Stake TRX".</Text> */}
 
             <InfoBox>
               <InfoTitle>Understanding Energy Staking</InfoTitle>
@@ -394,14 +438,19 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
               placeholder="e.g., 100"
               value={trxAmount}
               onChange={(e) => setTrxAmount(e.target.value)}
+              min={0}
             />
 
-            <StakeButton onClick={handleStake}>Stake TRX</StakeButton>
-            <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>Continue Your Journey</ButtonCont>
+            <StakeButton onClick={handleStake} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Stake TRX '}</StakeButton>
+            <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>
+            {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+            </ButtonCont>
 
             {error && <Text style={{ color: 'red' }}>{error}</Text>}
             {success && <Text style={{ color: 'green' }}>{success}</Text>}
           </Container>
         </ScrollableContent>
       </PageWrapper>
-    </>)}
+    </>
+  )
+}
