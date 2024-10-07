@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import toast, { Toaster } from 'react-hot-toast'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -135,7 +136,6 @@ const ButtonAddLink = styled.a`
   transition: all 0.3s ease;
   text-decoration: none;
 
-
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
@@ -200,26 +200,27 @@ interface TronLinkGuideProps {
 const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
   const navigate = useNavigate()
   const [taskCompleted, setTaskCompleted] = useState(false)
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false); // Track task status
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false) // Track task status
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_connect_wallet_task2; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_create_wallet_task1 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   // useEffect(() => {
   //   // Check if the task is already completed when component mounts
@@ -245,10 +246,14 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
     if (window.tronWeb && window.tronWeb.ready) {
       // console.log('TronLink wallet is available and ready.')
       const username = Cookies.get('username')
+      setLoading(true)
       try {
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1', {
-          username: username,
-        })
+        const response = await axios.patch(
+          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
+          {
+            username: username,
+          }
+        )
         // console.log(response)
 
         // Update localStorage
@@ -257,19 +262,25 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
         })
+        setLoading(false)
         // console.log(response.data)
-        setTaskCompleted(true) // Show "Continue Your Journey" button
+        setIsTaskCompleted(true) // Show "Continue Your Journey" button
       } catch (error) {
         toast.error('Failed to complete task. Please try again.', {
           position: 'top-center',
         })
+        setLoading(false)
         console.error(error)
       }
     } else {
       console.log('TronLink wallet is not installed or not logged in.')
-      toast.error('TronLink wallet is not available.', {
-        position: 'top-center',
-      })
+      setLoading(false)
+      toast.error(
+        'TronLink wallet is not available or switch to shasta network from your wallet!',
+        {
+          position: 'top-center',
+        }
+      )
     }
   }
 
@@ -314,7 +325,15 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
               anyone.
             </Note>
             <div className="w-full flex justify-center">
-              <ButtonAddLink onClick={handleTaskCompletion}>{isTaskCompleted ? 'Task Completed' : 'Check Wallet'}</ButtonAddLink>
+              <ButtonAddLink onClick={handleTaskCompletion}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Check Wallet'
+                )}
+              </ButtonAddLink>
             </div>
             {isTaskCompleted && (
               <div className="w-full flex items-center flex-col">

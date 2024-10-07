@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 import { ScaleLoader } from 'react-spinners'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -253,150 +253,159 @@ interface SendTRXProps {
 export default function SendTRX({ onBack }: SendTRXProps) {
   const navigate = useNavigate()
   const [recipient, setRecipient] = useState('')
-  const [amount, setAmount] = useState<number>();
+  const [amount, setAmount] = useState<number>()
   const [txnHash, setTxnHash] = useState('')
   const [showVerificationSteps, setShowVerificationSteps] = useState(false)
-  const [verificationUrl,setVerificationURL]=useState('');
-  const [address,setUseraddress]=useState('');
+  const [verificationUrl, setVerificationURL] = useState('')
+  const [address, setUseraddress] = useState('')
   const [verificationHash, setVerificationHash] = useState('')
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_trc20_send_task9; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_trc20_send_task9 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
         // setIsValid(taskStatus);
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const handleSend = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
       if (!recipient || !amount) {
         toast.error('Please enter both the recipient address and the amount of tokens to send.', {
           position: 'top-center',
-        });
-        return;
+        })
+        return
       }
-  
+
       try {
-        const userAddress = window.tronWeb.defaultAddress.base58;
-        setUseraddress(userAddress);
-        const contractAddress=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${userAddress}/trc20mintcontract`);
-  
+        setLoading(true)
+        const userAddress = window.tronWeb.defaultAddress.base58
+        setUseraddress(userAddress)
+        const contractAddress = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${userAddress}/trc20mintcontract`
+        )
+
         // TRC-20 standard ABI
         const trc20ABI = [
           {
-            "constant": false,
-            "inputs": [
-              { "name": "_to", "type": "address" },
-              { "name": "_value", "type": "uint256" }
+            constant: false,
+            inputs: [
+              { name: '_to', type: 'address' },
+              { name: '_value', type: 'uint256' },
             ],
-            "name": "transfer",
-            "outputs": [{ "name": "", "type": "bool" }],
-            "type": "function"
-          }
-        ];
-  
+            name: 'transfer',
+            outputs: [{ name: '', type: 'bool' }],
+            type: 'function',
+          },
+        ]
+
         // Get contract instance using explicit ABI
-        const contract = await window.tronWeb.contract(trc20ABI, contractAddress.data.trc20mint_contract_address);
-  
+        const contract = await window.tronWeb.contract(
+          trc20ABI,
+          contractAddress.data.trc20mint_contract_address
+        )
+
         // Convert amount to correct number of decimals (assuming 18 decimals)
-        const tokenDecimals = 18;
-        const tokenAmount = window.tronWeb.toBigNumber((amount) * (10 ** tokenDecimals));
-  
+        const tokenDecimals = 18
+        const tokenAmount = window.tronWeb.toBigNumber(amount * 10 ** tokenDecimals)
+        console.log(tokenAmount)
+        console.log(amount)
+
         // Send the transaction
-        const transaction = await contract.transfer(recipient, tokenAmount.toString()).send();
-  
+        const transaction = await contract.transfer(recipient, amount.toString()).send()
+
         // Get transaction hash
-        const txnHash = transaction; // In TronWeb, the send function returns the transaction hash
-        setVerificationURL(`https://nile.tronscan.org/#/address/${userAddress}`);
+        const txnHash = transaction // In TronWeb, the send function returns the transaction hash
+        setVerificationURL(`https://nile.tronscan.org/#/address/${userAddress}`)
         // console.log(txnHash);
-        setTxnHash(txnHash);
-        setShowVerificationSteps(true);
+        setTxnHash(txnHash)
+        setShowVerificationSteps(true)
         toast.success(`Transaction sent successfully!}`, {
           position: 'top-center',
-        });
+        })
+        setLoading(false)
       } catch (error) {
-        console.error('Error sending tokens:', error);
+        console.error('Error sending tokens:', error)
         toast.error('Error sending tokens. Please try again.', {
           position: 'top-center',
-        });
+        })
+        setLoading(false)
       }
     } else {
       toast.error('TronLink wallet is not installed or not logged in.', {
         position: 'top-center',
-      });
+      })
+      setLoading(false)
     }
-  };
-  
+  }
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(verificationUrl)
     alert('Verification URL copied to clipboard!')
   }
 
-  const handleVerify = async() => {
+  const handleVerify = async () => {
     try {
       // Get transaction info
-      if (window.tronWeb && window.tronWeb.ready)
-        {
-          
-        setLoading(true);
-        const txInfo = await window.tronWeb.trx.getTransaction(txnHash);
-        let energyUsage=""
-        
+      if (window.tronWeb && window.tronWeb.ready) {
+        setLoading(true)
+        const txInfo = await window.tronWeb.trx.getTransaction(txnHash)
+        let energyUsage = ''
+
         // Extract ref_block_number from raw_data
-        const refBlockNumber = parseInt(txInfo.raw_data.ref_block_bytes, 16);
+        const refBlockNumber = parseInt(txInfo.raw_data.ref_block_bytes, 16)
 
         // console.log(`Reference Block Number: ${refBlockNumber}`);
 
         // Get detailed transaction info
-        const txInfoDetails = await window.tronWeb.trx.getTransactionInfo(txnHash);
+        const txInfoDetails = await window.tronWeb.trx.getTransactionInfo(txnHash)
 
         // Extract actual block number and bandwidth usage
-        const blockNumber = txInfoDetails.blockNumber;
-        const bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee;
+        const blockNumber = txInfoDetails.blockNumber
+        const bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee
 
         // console.log(`Actual Block Number: ${blockNumber}`);
         // console.log(`Bandwidth Usage: ${bandwidthUsage}`);
 
         // If energy was used instead of bandwidth
-        if (txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee) {
-            energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee;
-            // console.log(`Energy Usage: ${energyUsage}`);
-        }
-        
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task9 ', { address: address,txhash:txnHash,blockno:blockNumber,bandwidth:energyUsage });
-         toast.success("Congratulations on completing your task! 🎉", {
+        // if (txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee) {
+        //   energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee
+        //   // console.log(`Energy Usage: ${energyUsage}`);
+        // }
+
+        const response = await axios.patch(
+          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task9 ',
+          { address: address, txhash: txnHash, blockno: blockNumber, bandwidth: bandwidthUsage }
+        )
+        toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
-         });
-         setLoading(false);
-
+        })
+        setLoading(false)
       }
-      
-    
-  } catch (error) {
-      console.error('Error:', error);
-  }
-
+    } catch (error) {
+      console.error('Error:', error)
+      setLoading(false)
+    }
   }
 
   return (
     <>
       <GlobalStyle />
-      <Toaster/>
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
@@ -422,12 +431,20 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               type="number"
               placeholder="Enter amount of TRX..."
               value={amount}
-              onChange={(e) => setAmount(parseFloat(e.target.value))}
+              onChange={(e) => setAmount(window.tronWeb.toDecimal(e.target.value))}
               aria-label="Amount of TRX to send"
             />
 
             <ButtonContainer>
-              <Button onClick={handleSend} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Send Now'}</Button>
+              <Button onClick={handleSend} disabled={isTaskCompleted || loading}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Send Now'
+                )}
+              </Button>
             </ButtonContainer>
 
             {showVerificationSteps && (
@@ -477,7 +494,13 @@ export default function SendTRX({ onBack }: SendTRXProps) {
                 />
 
                 <ButtonContainer>
-                  <Button onClick={handleVerify}>{loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Verify Transaction'}</Button>
+                  <Button onClick={handleVerify}>
+                    {loading ? (
+                      <ScaleLoader height={15} width={4} color="white" />
+                    ) : (
+                      'Verify Transaction'
+                    )}
+                  </Button>
                   <ButtonCont onClick={() => navigate('/')}>Continue Your Journey</ButtonCont>
                 </ButtonContainer>
               </>

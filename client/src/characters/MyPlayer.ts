@@ -32,7 +32,7 @@ export default class MyPlayer extends Player {
   private popupTimer?: Phaser.Time.TimerEvent
   private popupCooldowns: Map<string, number> = new Map()
   private readonly POPUP_COOLDOWN = 5000 // 3 seconds cooldown
-  private glowingPoints: Phaser.GameObjects.Ellipse[] = [];
+  private glowingPoints: Phaser.GameObjects.Ellipse[] = []
   private readonly taskKeys = [
     'is_create_wallet_task1',
     'is_connect_wallet_task2',
@@ -43,8 +43,8 @@ export default class MyPlayer extends Player {
     'is_get_energy_task7',
     'is_trc20_mint_task8', // Task 8
     'is_trc20_send_task9', // Task 9
-    'is_view_transaction_task10 '  // Task 10
-  ];
+    'is_view_transaction_task10', // Task 10
+  ]
 
   constructor(
     scene: Phaser.Scene,
@@ -166,40 +166,39 @@ export default class MyPlayer extends Player {
         x: 692,
         y: 313,
         message:
-        'Welcome to the Transaction Review and Certification Center! Here you can examine your blockchain activity and receive recognition for your achievements.',
+          'Welcome to the Transaction Review and Certification Center! Here you can examine your blockchain activity and receive recognition for your achievements.',
         shown: false,
         taskKey: 'Popup-5',
       },
-      
+
       {
         x: 360,
         y: 269,
         message:
           'Task 9: Approve and Transfer TRC20 Tokens. Go to the token management console to learn how to approve and transfer your newly minted TRC20 tokens.',
-          shown: false,
-          button: 'Task 9',
-          taskKey: 'is_trc20_send_task9',
+        shown: false,
+        button: 'Task 9',
+        taskKey: 'is_trc20_send_task9',
       },
       {
         x: 529,
         y: 633,
         message:
           'Task 10: View Transaction Details. Locate the blockchain explorer terminal to review the details of your previous transactions.',
-          shown: false,
-          button: 'Task 10',
-          taskKey: 'is_view_transaction_task10',
+        shown: false,
+        button: 'Task 10',
+        taskKey: 'is_view_transaction_task10',
       },
-
     ]
     this.popupPositions.forEach((pos) => (pos.shown = false))
-    this.createGlowingPoints();
+    this.createGlowingPoints()
     // Set up an interval to regularly check and update glowing points
     this.scene.time.addEvent({
       delay: 1000, // Check every second
       callback: this.updateGlowingPoints,
       callbackScope: this,
-      loop: true
-    });
+      loop: true,
+    })
   }
 
   private createGlowingPoints() {
@@ -214,47 +213,47 @@ export default class MyPlayer extends Player {
       { x: 723, y: 149 },
       { x: 360, y: 269 },
       { x: 529, y: 633 },
-    ];
+    ]
 
     points.forEach((point) => {
-      const glow = this.scene.add.ellipse(point.x, point.y, 15, 15, 0xff0000, 0.5);
-      glow.setVisible(false); 
-      
+      const glow = this.scene.add.ellipse(point.x, point.y, 15, 15, 0xff0000, 0.5)
+      glow.setVisible(false)
+
       this.scene.tweens.add({
         targets: glow,
         alpha: 0.2,
         scale: 1.2,
         duration: 1000,
         yoyo: true,
-        repeat: -1
-      });
+        repeat: -1,
+      })
 
-      this.glowingPoints.push(glow);
-    });
-    this.updateGlowingPoints();
+      this.glowingPoints.push(glow)
+    })
+    this.updateGlowingPoints()
   }
 
   private updateGlowingPoints() {
-    const taskStatus = this.getTaskStatus();
-    let activePointIndex = -1;
+    const taskStatus = this.getTaskStatus()
+    let activePointIndex = -1
 
     // Find the first incomplete task
     for (let i = 0; i < this.taskKeys.length; i++) {
       if (!taskStatus[this.taskKeys[i]]) {
-        activePointIndex = i;
-        break;
+        activePointIndex = i
+        break
       }
     }
 
     // Update visibility of all points
     this.glowingPoints.forEach((point, index) => {
-      point.setVisible(index === activePointIndex);
-    });
+      point.setVisible(index === activePointIndex)
+    })
   }
 
   private getTaskStatus(): Record<string, boolean> {
-    const taskStatus = localStorage.getItem('tasks_status');
-    return taskStatus ? JSON.parse(taskStatus) : {};
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
   }
 
   setPlayerName(name: string) {
@@ -404,30 +403,35 @@ export default class MyPlayer extends Player {
 
     this.checkPopupTriggers()
   }
-  
+
   private checkPopupTriggers() {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
-    // console.log("player position" ,playerX, playerY)
+    // console.log('player position', playerX, playerY)
     const taskStatus = this.getTaskStatus()
     const currentTime = this.scene.time.now
 
     for (const position of this.popupPositions) {
-      if (!position.shown && Math.abs(playerX - position.x) <= 30 && Math.abs(playerY - position.y) <= 30) {
+      if (
+        !position.shown &&
+        Math.abs(playerX - position.x) <= 30 &&
+        Math.abs(playerY - position.y) <= 30
+      ) {
         const cooldownEndTime = this.popupCooldowns.get(position.taskKey) || 0
         if (currentTime < cooldownEndTime) {
           continue // Skip this popup if it's still in cooldown
         }
 
         const isCompleted = taskStatus[position.taskKey]
-        const message = position.message;
-        const buttonText = position.button;
+        const message = isCompleted
+          ? `You've already completed this task: ${position.message}`
+          : position.message
+        const buttonText = isCompleted ? 'View Task' : position.button
 
         this.showPopup(message, position.x, position.y - 75, buttonText, position.taskKey)
         position.shown = true
         break
-
       }
     }
   }
@@ -436,9 +440,9 @@ export default class MyPlayer extends Player {
   //   const taskStatus = localStorage.getItem('tasks_status');
   //   return taskStatus ? JSON.parse(taskStatus) : {};
   // }
-  private showPopup(message: string, x: number, y: number, buttonText?:string,taskKey?:string) {
+  private showPopup(message: string, x: number, y: number, buttonText?: string, taskKey?: string) {
     this.popupShown = true
-    // console.log('again come increase x and y')
+    console.log('again come increase x and y')
 
     // Create a container for the popup
     this.popup = this.scene.add.container(x, y)
@@ -484,7 +488,7 @@ export default class MyPlayer extends Player {
       })
       actionButton.setOrigin(0.5)
       actionButton.setInteractive({ useHandCursor: true })
-      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText,taskKey))
+      actionButton.on('pointerdown', () => this.handleButtonClick(buttonText, taskKey))
       elements.push(actionButton)
     }
 
@@ -502,70 +506,58 @@ export default class MyPlayer extends Player {
       duration: 200,
       ease: 'Back.easeOut',
     })
-
   }
   private handleButtonClick(buttonText: string, taskKey: string | undefined) {
-    const taskStatus = this.getTaskStatus();
-    const isCompleted = taskKey ? taskStatus[taskKey] : false;
-    if(isCompleted){
-      // console.log(`Viewing completed task: ${taskKey}`);
+    const taskStatus = this.getTaskStatus()
+    const isCompleted = taskKey ? taskStatus[taskKey] : false
+    if (isCompleted) {
+      console.log(`Viewing completed task: ${taskKey}`)
       switch (taskKey) {
         case 'is_create_wallet_task1':
-              this.scene.game.events.emit('setFrame', '/task1');
-          break;
+          this.scene.game.events.emit('setFrame', '/task1')
+          break
         case 'is_connect_wallet_task2':
-              this.scene.game.events.emit('setFrame', '/task2');
-            break;
+          this.scene.game.events.emit('setFrame', '/task2')
+          break
         case 'is_sign_tx_task3':
-              this.scene.game.events.emit('setFrame', '/task3');
-              break;
+          this.scene.game.events.emit('setFrame', '/task3')
+          break
         case 'is_get_trx_task4':
-              this.scene.game.events.emit('setFrame', '/task4');
-              break;  
+          this.scene.game.events.emit('setFrame', '/task4')
+          break
         case 'is_send_trx_task5':
-                this.scene.game.events.emit('setFrame', '/task5');
-                break;
+          this.scene.game.events.emit('setFrame', '/task5')
+          break
         case 'is_check_bandwidth_task6':
-                this.scene.game.events.emit('setFrame', '/task6');
-                break;  
+          this.scene.game.events.emit('setFrame', '/task6')
+          break
         case 'is_get_energy_task7':
-                  this.scene.game.events.emit('setFrame', '/task7');
-                  break;          
-        case 'is_trc20_mint_task8':
-                  this.scene.game.events.emit('setFrame', '/task8');
-                  break; 
-        case 'is_trc20_send_task9':
-                  this.scene.game.events.emit('setFrame', '/task9');
-                  break;     
-        case 'is_view_transaction_task10':
-                  this.scene.game.events.emit('setFrame', '/task10');
-                  break;                                           
-
+          this.scene.game.events.emit('setFrame', '/task7')
+          break
       }
-    }
-    else{
-    switch (buttonText) {
-      case 'Task 1':
-        this.scene.game.events.emit('setFrame', '/task1');
-        break;
-      case 'Task 2':
-        this.scene.game.events.emit('setFrame', '/task2');
-        break;
-      case 'Task 3':
-        this.scene.game.events.emit('setFrame', '/task3');
-        break;
-      case 'Task 4':
-        this.scene.game.events.emit('setFrame', '/task4');
-        break;
-      case 'Task 5':
-        this.scene.game.events.emit('setFrame', '/task5');
-        break;
-      case 'Task 6':
-        this.scene.game.events.emit('setFrame', '/task6');
-        break;
-      case 'Task 7':
-        this.scene.game.events.emit('setFrame', '/task7');
-        break;
+    } else {
+      switch (buttonText) {
+        case 'Task 1':
+          this.scene.game.events.emit('setFrame', '/task1')
+          break
+        case 'Task 2':
+          this.scene.game.events.emit('setFrame', '/task2')
+          break
+        case 'Task 3':
+          this.scene.game.events.emit('setFrame', '/task3')
+          break
+        case 'Task 4':
+          this.scene.game.events.emit('setFrame', '/task4')
+          break
+        case 'Task 5':
+          this.scene.game.events.emit('setFrame', '/task5')
+          break
+        case 'Task 6':
+          this.scene.game.events.emit('setFrame', '/task6')
+          break
+        case 'Task 7':
+          this.scene.game.events.emit('setFrame', '/task7')
+          break
         case 'Task 8':
           this.scene.game.events.emit('setFrame', '/task8')
           break
@@ -575,46 +567,46 @@ export default class MyPlayer extends Player {
         case 'Task 10':
           this.scene.game.events.emit('setFrame', '/task10')
           break
-    }
-    this.closePopup();
-    // const currentIndex = parseInt(localStorage.getItem('currentTaskIndex') || '0');
-    // localStorage.setItem('currentTaskIndex', (currentIndex + 1).toString());
-    // this.updateGlowingPoints();
-  }
-}
-private closePopup() {
-  if (this.popup && !this.popup.list.includes(this.closeButton!)) {
-    return;
-  }
-
-  if (this.popupTween) {
-    this.popupTween.stop();
-  }
-
-  if (this.popupTimer) {
-    this.popupTimer.remove();
-  }
-
-  this.popupTween = this.scene.tweens.add({
-    targets: this.popup,
-    scale: 0.8,
-    alpha: 0,
-    duration: 200,
-    ease: 'Back.easeIn',
-    onComplete: () => {
-      if (this.popup) {
-        this.popup.destroy()
-        this.popup = undefined
       }
-      this.closeButton = undefined
-      this.popupShown = false
+      this.closePopup()
+      // const currentIndex = parseInt(localStorage.getItem('currentTaskIndex') || '0');
+      // localStorage.setItem('currentTaskIndex', (currentIndex + 1).toString());
+      // this.updateGlowingPoints();
+    }
+  }
+  private closePopup() {
+    if (this.popup && !this.popup.list.includes(this.closeButton!)) {
+      return
+    }
 
-      // Reset the 'shown' status for all positions and set cooldown
-      this.popupPositions.forEach((pos) => {
-        pos.shown = false
-        this.popupCooldowns.set(pos.taskKey, this.scene.time.now + this.POPUP_COOLDOWN)
-      })
-    },
+    if (this.popupTween) {
+      this.popupTween.stop()
+    }
+
+    if (this.popupTimer) {
+      this.popupTimer.remove()
+    }
+
+    this.popupTween = this.scene.tweens.add({
+      targets: this.popup,
+      scale: 0.8,
+      alpha: 0,
+      duration: 200,
+      ease: 'Back.easeIn',
+      onComplete: () => {
+        if (this.popup) {
+          this.popup.destroy()
+          this.popup = undefined
+        }
+        this.closeButton = undefined
+        this.popupShown = false
+
+        // Reset the 'shown' status for all positions and set cooldown
+        this.popupPositions.forEach((pos) => {
+          pos.shown = false
+          this.popupCooldowns.set(pos.taskKey, this.scene.time.now + this.POPUP_COOLDOWN)
+        })
+      },
     })
   }
 }

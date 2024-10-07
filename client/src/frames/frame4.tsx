@@ -2,7 +2,8 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -281,7 +282,8 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
   const [last_balance, setLastBalance] = useState(0)
   const [recent_balance, setRecentBalance] = useState(0)
   const [Isshow, setShow] = useState(false)
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   // const getTaskStatus = (): Record<string, boolean> => {
   //   const taskStatus = localStorage.getItem('tasks_status')
@@ -306,23 +308,25 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_get_trx_task4; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_get_trx_task4 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const HandleBalanceCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
+      setLoading(true)
       const address = (window as any).tronWeb.defaultAddress.base58
       // console.log(address)
       const response = await axios.get(
@@ -332,25 +336,31 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
       const balance = await window.tronWeb.trx.getBalance(address)
       setRecentBalance(balance)
       if (balance > response.data.balance_shasta) {
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4', {
-          address: address,
-        })
+        const response = await axios.patch(
+          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4',
+          {
+            address: address,
+          }
+        )
         // console.log("Response:",response.data);
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
         })
         setIsValid(true)
+        setLoading(false)
         // updateTaskStatus('is_get_trx_task4')
       } else {
         toast.error('Stil balance is equal or not greater then your recorded last balance !', {
           position: 'top-center',
         })
+        setLoading(false)
       }
       setShow(true)
     } else {
       toast.error('TronLink wallet is not installed or not logged in.', {
         position: 'top-center',
       })
+      setLoading(false)
     }
   }
 
@@ -400,9 +410,17 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
             </List>
 
             <ButtonGroup>
-              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Check Balance'}</Button>
+              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Check Balance'
+                )}
+              </Button>
               <ButtonCont disabled={!isValid} onClick={onBack}>
-              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+                {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
             {Isshow && (

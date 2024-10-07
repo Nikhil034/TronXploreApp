@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -256,7 +257,8 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
   const [isValid, setIsValid] = useState(false)
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   // useEffect(() => {
   //   // Check if the task is already completed when component mounts
@@ -281,21 +283,21 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_get_energy_task7; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_get_energy_task7 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
-
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const handleStake = async () => {
     setError('')
@@ -320,6 +322,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
       if (!tronWeb.isAddress(userAddress)) {
         throw new Error('Invalid TRON address')
       }
+      setLoading(true)
 
       const sunAmount = tronWeb.toSun(amount)
       // console.log('Staking amount in SUN:', sunAmount)
@@ -333,12 +336,14 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
 
       if (accountResources.EnergyLimit > 0) {
         // console.log('Existing freeze detected. Please unfreeze before creating a new freeze.')
+        setLoading(false)
         setError('You have an existing freeze. Please unfreeze before staking again.')
         return
       }
 
       if (balance < sunAmount) {
         // console.log('Insufficient balance')
+        setLoading(false)
         setError('Insufficient balance to complete the staking transaction.')
         return
       }
@@ -361,11 +366,14 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
 
       if (txnReceipt.result) {
         // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
-        const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7', {
-          address: userAddress,
-          txhash: txnReceipt.txid,
-          amount: amount,
-        })
+        const response = await axios.patch(
+          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7',
+          {
+            address: userAddress,
+            txhash: txnReceipt.txid,
+            amount: amount,
+          }
+        )
         // console.log("Response:",response.data);
         toast.success('Congratulations on completing your task! 🎉.', {
           position: 'top-center',
@@ -373,12 +381,15 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
         })
         setSuccess('Succesfully staked energy you can check out your wallet.')
         setIsValid(true)
+        setLoading(false)
         // updateTaskStatus('is_get_energy_task7')
       } else {
         console.error('Transaction failed:', txnReceipt)
         setError('Transaction failed. Please check the console for details and try again.')
+        setLoading(false)
       }
     } catch (error: any) {
+      setLoading(false)
       console.error('Error during staking:', error)
       if (error.message === 'Invalid TRON address') {
         setError('The TRON address is invalid. Please check your wallet connection.')
@@ -441,9 +452,17 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
               min={0}
             />
 
-            <StakeButton onClick={handleStake} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Stake TRX '}</StakeButton>
+            <StakeButton onClick={handleStake} disabled={isTaskCompleted || loading}>
+              {loading ? (
+                <ScaleLoader height={15} width={4} color="white" />
+              ) : isTaskCompleted ? (
+                'Task Completed'
+              ) : (
+                'Stake TRX'
+              )}
+            </StakeButton>
             <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>
-            {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
             </ButtonCont>
 
             {error && <Text style={{ color: 'red' }}>{error}</Text>}

@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
 import { taskCompleted } from '@reduxjs/toolkit/dist/listenerMiddleware/exceptions'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -116,14 +117,16 @@ const Button = styled.button`
   margin: 10px 5px;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
-
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(255, 0, 0, 0.15);
   }
 `
 const ButtonCont = styled.button<{ disabled: boolean }>`
-  background: ${({ disabled }) => (disabled ? 'linear-gradient(45deg, #4CAF50, #388E3C)' : 'linear-gradient(45deg, #4caf50, #388e3c)')};
+  background: ${({ disabled }) =>
+    disabled
+      ? 'linear-gradient(45deg, #4CAF50, #388E3C)'
+      : 'linear-gradient(45deg, #4caf50, #388e3c)'};
   color: ${({ disabled }) => (disabled ? '#fff' : 'white')};
   border: none;
   padding: 12px 24px;
@@ -138,18 +141,18 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
   transition: all 0.3s ease;
   margin: 10px 5px;
   position: relative;
-  opacity: ${({disabled})=>(disabled?0.5:1)};
-
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
     transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-2px)')};
     box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 6px 8px rgba(0, 0, 0, 0.15)')};
   }
 
-
   &::after {
     content: ${({ disabled }) =>
-    disabled ? '"Your dedication has brought you here, now it\'s time to complete the journey 🏆"' : '""'};
+      disabled
+        ? '"Your dedication has brought you here, now it\'s time to complete the journey 🏆"'
+        : '""'};
     position: absolute;
     bottom: 100%; // Adjust as needed for the tooltip placement
     left: 50%;
@@ -165,7 +168,6 @@ const ButtonCont = styled.button<{ disabled: boolean }>`
     opacity: 0; // Start with opacity 0
     transition: opacity 0.2s ease; // Smooth transition for opacity
   }
-
 
   &:hover::after {
     display: ${({ disabled }) => (disabled ? 'block' : 'none')}; // Show only when disabled
@@ -274,74 +276,122 @@ interface TronEnergyExplainerProps {
 }
 
 export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps) {
-  const [address,setAddress]=useState('');
-  const [blockno,setBlockno]=useState('');
-  const [energy,setEnergy]=useState('');
+  const [address, setAddress] = useState('')
+  const [blockno, setBlockno] = useState('')
+  const [energy, setEnergy] = useState('')
   const [isValid, setIsValid] = useState(false)
   const navigate = useNavigate()
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  // const [netfee, setNetfee] = useState(0)
+  const [loading, setLoading] = useState(false)
 
-  useEffect(()=>{
+  useEffect(() => {
     if (!window.tronWeb || !window.tronWeb.ready) {
       toast.error('TronLink wallet is not installed or not logged in.', {
         position: 'top-center',
-      });
-      return;
+      })
+      return
     }
-    const userAddress = window.tronWeb.defaultAddress.base58;
-    setAddress(userAddress);
-  },[])
+    const userAddress = window.tronWeb.defaultAddress.base58
+    setAddress(userAddress)
+  }, [])
 
   useEffect(() => {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_view_transaction_task10; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_view_transaction_task10 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
         // setIsValid(taskStatus);
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
-  
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
-  const HandleTransaction=async()=>{
-    const getdetails=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`);
+  const HandleTransaction = async () => {
+    setLoading(true)
+    let netFee = 0
+    const getdetails = await axios.get(
+      `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`
+    )
     // console.log(getdetails.data.trc20_send_blockno_nile)
     // console.log(getdetails.data.trc20_send_bandwidth_nile)
 
-    if(blockno==getdetails.data.trc20_send_blockno_nile && energy==getdetails.data.trc20_send_bandwidth_nile){
-      const response = await axios.patch('http://localhost:2567/api/users/user_task10', { address: address});
+    const block = await window.tronWeb.trx.getBlock(getdetails.data.trc20_send_blockno_nile)
+
+    if (!block || !block.transactions) {
+      setLoading(false)
+      throw new Error('Block not found or has no transactions.')
+    }
+
+    // Initialize total bandwidth usage
+    let totalBandwidthUsage = 0
+
+    // Iterate through each transaction to calculate total bandwidth usage
+    for (const transaction of block.transactions) {
+      console.log(`Transaction ID: ${transaction.txID}`)
+
+      // Fetch transaction info
+      const transactionInfo = await window.tronWeb.trx.getTransactionInfo(transaction.txID)
+
+      if (transactionInfo && transactionInfo.receipt) {
+        const netUsage = transactionInfo.receipt.net_usage || 0 // Get net usage
+        netFee = transactionInfo.receipt.net_fee || 0 // Get net fee if needed
+
+        // Log the usage details
+        console.log(`Net Usage for ${transaction.txID}: ${netUsage}`)
+        console.log(`Net Fee for ${transaction.txID}: ${netFee}`)
+        // setNetfee(netFee)
+
+        totalBandwidthUsage += netUsage // Add the net usage for each transaction
+      } else {
+        console.log(`No receipt found for transaction ${transaction.txID}`)
+      }
+    }
+
+    // console.log(
+    //   `Total bandwidth usage for block ${getdetails.data.trc20_send_blockno_nile}: ${totalBandwidthUsage}`
+    // )
+
+    if (
+      blockno == getdetails.data.trc20_send_blockno_nile &&
+      netFee == getdetails.data.trc20_send_bandwidth_nile
+    ) {
+      const response = await axios.patch(
+        'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task10',
+        { address: address }
+      )
       // console.log("Response:",response.data);
-      if(response.data){
-      toast.success('Congratulations on completing Final task! 🎉', {
+      if (response.data) {
+        toast.success('Congratulations on completing Final task! 🎉', {
+          position: 'top-center',
+        })
+        setBlockno('')
+        setEnergy('')
+        setLoading(false)
+      }
+      setIsValid(true)
+    } else {
+      toast.error('Incorrect Blockno or Bandwidth found,try again!', {
         position: 'top-center',
-      });
-      setBlockno('');
-      setEnergy('');
+      })
+      setLoading(false)
     }
-      setIsValid(true);
-    }
-    else{
-      toast.error('Incorrect Blockno or energy found,try again!' ,{
-        position: 'top-center',
-      });
-    }
-    
   }
 
   return (
     <>
       <GlobalStyle />
-      <Toaster/>
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
@@ -366,7 +416,7 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
                 Find your most recent transaction on the Nile testnet regarding TRC-20 token
               </ListItem>
               <ListItem>Click on the transaction to view its details</ListItem>
-              <ListItem>Look for the "Block" and "Energy usage from user's staked energy" information</ListItem>
+              <ListItem>Look for the "Block" and "Bandwidth" information</ListItem>
             </List>
 
             <SubTitle>Let's check your knowledge</SubTitle>
@@ -375,20 +425,30 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
             <Input
               type="number"
               placeholder="Enter transcation block number..."
-                value={blockno}
-                onChange={(e) => setBlockno(e.target.value)}
+              value={blockno}
+              onChange={(e) => setBlockno(e.target.value)}
             />
             <CardTitle> Enter your last transaction Energy</CardTitle>
             <Input
               type="number"
-              placeholder="Enter energy here..."
-                value={energy}
-                onChange={(e) => setEnergy(e.target.value)}
+              placeholder="Enter Bandwidth here..."
+              value={energy}
+              onChange={(e) => setEnergy(e.target.value)}
             />
 
             <ButtonGroup>
-              <Button onClick={HandleTransaction} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Check it!'}</Button>
-              <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>Finish</ButtonCont>
+              <Button onClick={HandleTransaction} disabled={isTaskCompleted || loading}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Check it!'
+                )}
+              </Button>
+              <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>
+                Finish
+              </ButtonCont>
             </ButtonGroup>
           </Container>
         </ScrollableContent>

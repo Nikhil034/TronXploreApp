@@ -4,8 +4,8 @@ import { AlertCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
-import Cookies from 'js-cookie';
-
+import Cookies from 'js-cookie'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -393,7 +393,8 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
   const [uniqueHashes, setUniqueHashes] = useState<Set<string>>(new Set())
   const [network, setNetwork] = useState('')
   const [walletAddress, setWalletAddress] = useState('')
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const getWalletAddress = async () => {
@@ -414,20 +415,21 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_check_bandwidth_task6; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_check_bandwidth_task6 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   // const getTaskStatus = (): Record<string, boolean> => {
   //   const taskStatus = localStorage.getItem('tasks_status')
@@ -448,17 +450,22 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
   //   }
   // }, [])
 
-  const fetchTransactionUsage = async (transactionHash: string) => {
+  const fetchTransactionUsage = async (transactionHash) => {
     try {
       if (!window.tronWeb || !window.tronWeb.ready) {
         toast.error('TronLink wallet is not installed or not logged in.', {
           position: 'top-center',
         })
+        return
       }
 
       const tronWeb = window.tronWeb
+
+      // Wait for transaction confirmation (5 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+
       const transactionInfo = await tronWeb.trx.getTransactionInfo(transactionHash)
-      // console.log(transactionInfo);
+      console.log(transactionInfo) // Log full transaction info for debugging
 
       if (!transactionInfo) {
         throw new Error('Transaction info not found')
@@ -466,14 +473,20 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
 
       const bandwidth = transactionInfo.receipt?.net_usage || 0
       const energyUsed = transactionInfo.receipt?.energy_usage_total || 0
-      // console.log(`${bandwidth} and ${energyUsed}`);
 
-      return { bandwidth, energyUsed }
+      console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
+
+      if (bandwidth && energyUsed) {
+        return { bandwidth, energyUsed }
+      }
+      return undefined
     } catch (error) {
       console.error('Error fetching transaction info:', error)
-      throw new Error('Failed to fetch transaction resources')
+      return undefined
+      // throw new Error('Failed to fetch transaction resources')
     }
   }
+
   const isValidTronHash = (hash: string) => {
     // Basic validation: 64 character hex string
     return /^[0-9a-fA-F]{64}$/.test(hash)
@@ -506,9 +519,14 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
       setError('')
 
       try {
-        const { bandwidth, energyUsed } = await fetchTransactionUsage(transactionHash)
-        setResources({ bandwidth, energy: energyUsed })
-
+        setLoading(true)
+        const transactionResult = await fetchTransactionUsage(transactionHash)
+        if (transactionResult) {
+          const { bandwidth, energyUsed } = transactionResult
+          console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
+        } else {
+          console.log('Failed to fetch transaction usage.')
+        }
         setUniqueHashes((prev) => new Set(prev).add(transactionHash))
         const tronWeb = window.tronWeb
         const address = tronWeb.defaultAddress.base58
@@ -518,30 +536,37 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
         toast.error(error.message, {
           position: 'top-center',
         })
+        setLoading(false)
       }
     } else {
       toast.error('TronLink wallet is not installed or not logged in.', {
         position: 'top-center',
       })
+      setLoading(false)
     }
   }
 
   const callApi = async (address: string) => {
     try {
-      const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task6', {
-        address: address,
-      })
+      const response = await axios.patch(
+        'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task6',
+        {
+          address: address,
+        }
+      )
       // // console.log("Response:",response.data);
       toast.success('Congratulations on completing your task! 🎉.', {
         position: 'top-center',
         duration: 5000,
       })
       setIsValid(true)
+      setLoading(false)
       // updateTaskStatus('is_check_bandwidth_task6')
     } catch (error: any) {
       toast.error(`Failed to complete the task: ${error.message}`, {
         position: 'top-center',
       })
+      setLoading(false)
     }
   }
 
@@ -607,7 +632,15 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
               onChange={(e) => setTransactionHash(e.target.value)}
             />
 
-            <CheckButton onClick={handleCheck} disabled={isTaskCompleted}> {isTaskCompleted?'Task Completed':'Check Resources'}</CheckButton>
+            <CheckButton onClick={handleCheck} disabled={isTaskCompleted || loading}>
+              {loading ? (
+                <ScaleLoader height={15} width={4} color="white" />
+              ) : isTaskCompleted ? (
+                'Task Completed'
+              ) : (
+                'Check Resources'
+              )}
+            </CheckButton>
 
             {error && (
               <AlertBox type="error">
@@ -639,7 +672,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
             )}
 
             <ContinueButton disabled={!isValid} onClick={() => navigate('/')}>
-            {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
             </ContinueButton>
           </Container>
         </ScrollableContent>

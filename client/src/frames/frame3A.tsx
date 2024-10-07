@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -250,7 +251,8 @@ interface TransactionSigningProps {
 export default function TransactionSigning({ onBack }: TransactionSigningProps) {
   const navigate = useNavigate()
   const [isValid, setIsValid] = useState(false)
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   // useEffect(() => {
   //   // Check if the task is already completed when component mounts
@@ -264,20 +266,22 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_sign_tx_task3; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_sign_tx_task3 // Adjust based on the actual response structure
+        alert(taskStatus)
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const getTaskStatus = (): Record<string, boolean> => {
     const taskStatus = localStorage.getItem('tasks_status')
@@ -293,6 +297,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
   const handleSignTransaction = async () => {
     try {
       if (window.tronWeb && window.tronWeb.ready) {
+        setLoading(true)
         const message = 'Hello, TronWeb! This is a test message.'
         const messageHex = (window as any).tronWeb.toHex(message)
 
@@ -308,11 +313,16 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
         // console.log('Signature is valid:', isValidSignature)
 
         if (isValidSignature) {
+          console.log('come to signature!')
           const balance = await window.tronWeb.trx.getBalance(address)
-          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3', {
-            address: address,
-            balance: balance,
-          })
+          console.log(`balance=${balance} and address=${address}`)
+          const response = await axios.patch(
+            'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3',
+            {
+              address: address,
+              balance: balance,
+            }
+          )
           console.log('Response:', response.data)
 
           // Update localStorage
@@ -322,6 +332,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
             position: 'top-center',
           })
           setIsValid(true)
+          setLoading(false)
         } else {
           toast.error('Message signed, but verification failed. Check the console for details!', {
             position: 'top-center',
@@ -331,9 +342,11 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
         toast.error('Wallet not detected or need to unlock!', {
           position: 'top-center',
         })
+        setLoading(false)
       }
     } catch (error: any) {
       console.error('Error details:', error)
+      setLoading(false)
       alert('Error: ' + error.message)
     }
   }
@@ -381,9 +394,17 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
             </List>
 
             <ButtonGroup>
-              <Button onClick={handleSignTransaction} disabled={isTaskCompleted}> {isTaskCompleted?'Task Completed':'Sign Transaction'}</Button>
+              <Button onClick={handleSignTransaction} disabled={isTaskCompleted || loading}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Sign Transaction'
+                )}
+              </Button>
               <ButtonCont disabled={!isValid} onClick={() => navigate('/')}>
-              {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+                {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
           </Container>

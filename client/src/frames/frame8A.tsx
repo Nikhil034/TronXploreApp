@@ -3,10 +3,8 @@ import styled, { createGlobalStyle, keyframes } from 'styled-components'
 import { useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
-import { ScaleLoader } from 'react-spinners';
-import Cookies from 'js-cookie';
-
-
+import { ScaleLoader } from 'react-spinners'
+import Cookies from 'js-cookie'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -288,128 +286,137 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   const [isTokenMinted, setIsTokenMinted] = useState(false)
   const [isTokenVerified, setIsTokenVerified] = useState(false)
   const [copyButtonText, setCopyButtonText] = useState('Copy Address')
-  const [trc20_adddress,setTrc20address]=useState('')
-  const [address,Setaddress]=useState('');
-  const [txhash,Settxhash]=useState('');
-  const [txhashlink,SettxhashLink]=useState('');
-  const [loading, setLoading] = useState(false);
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [trc20_adddress, setTrc20address] = useState('')
+  const [address, Setaddress] = useState('')
+  const [txhash, Settxhash] = useState('')
+  const [txhashlink, SettxhashLink] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [isValid, setIsValid] = useState(false)
-
 
   useEffect(() => {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_trc20_mint_task8; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_trc20_mint_task8 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const handleMint = async () => {
     if (!window.tronWeb || !window.tronWeb.ready) {
       toast.error('TronLink wallet is not installed or not logged in.', {
         position: 'top-center',
-      });
-      return;
+      })
+      return
     }
-  
+
     if (!tokenName || !tokenSymbol || !initialSupply || parseInt(initialSupply, 10) <= 0) {
       toast.error('Please enter valid details for the token!', {
         position: 'top-center',
-      });
-      return;
+      })
+      return
     }
-  
+
     try {
-      setLoading(true);
-      const userAddress = window.tronWeb.defaultAddress.base58;
-      Setaddress(userAddress);
-      const FACTORY_ADDRESS = 'TD25qAECSNdpcTDFhDj3Ffa6hf1sZUstJL';
-      const DEFAULT_DECIMALS = 18;
-  
-      const contract = await window.tronWeb.contract().at(FACTORY_ADDRESS);
-      const bigIntSupply = BigInt(initialSupply) * BigInt(10 ** DEFAULT_DECIMALS);
-  
+      setLoading(true)
+      const userAddress = window.tronWeb.defaultAddress.base58
+      Setaddress(userAddress)
+      const FACTORY_ADDRESS = 'TD25qAECSNdpcTDFhDj3Ffa6hf1sZUstJL'
+      const DEFAULT_DECIMALS = 18
+
+      const contract = await window.tronWeb.contract().at(FACTORY_ADDRESS)
+      const bigIntSupply = BigInt(initialSupply) * BigInt(10 ** DEFAULT_DECIMALS)
+
       const transaction = await contract
         .createToken(tokenName, tokenSymbol, userAddress, bigIntSupply.toString())
-        .send({ feeLimit: 400000000 });
-  
+        .send({ feeLimit: 400000000 })
+
       // console.log('Transaction sent:', transaction);
-      Settxhash(transaction);
-  
-      const tronScannileLink=`https://nile.tronscan.org/#/transaction/${transaction}`
-      SettxhashLink(tronScannileLink);
-  
+      Settxhash(transaction)
+
+      const tronScannileLink = `https://nile.tronscan.org/#/transaction/${transaction}`
+      SettxhashLink(tronScannileLink)
+
       // Set up a loop to check for the transaction receipt
-      let receipt;
-      let attempts = 0;
-      const maxAttempts = 10;
-      const delayBetweenAttempts = 5000; // 5 seconds
-  
+      let receipt
+      let attempts = 0
+      const maxAttempts = 10
+      const delayBetweenAttempts = 5000 // 5 seconds
+
       while (!receipt && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
-        receipt = await window.tronWeb.trx.getTransactionInfo(transaction);
-        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts))
+        receipt = await window.tronWeb.trx.getTransactionInfo(transaction)
+        attempts++
       }
-  
+
       // console.log('Transaction receipt:', receipt);
-     
-  
+
       if (receipt && receipt.result === 'SUCCESS') {
         if (receipt.log && receipt.log.length > 0) {
-          const eventLog = receipt.log[0];
-          const newTokenAddress = window.tronWeb.address.fromHex(eventLog.topics[1]);
-  
-          setContractAddress(newTokenAddress);
-          setIsTokenMinted(true);
-  
+          const eventLog = receipt.log[0]
+          const newTokenAddress = window.tronWeb.address.fromHex(eventLog.topics[1])
+
+          setContractAddress(newTokenAddress)
+          setIsTokenMinted(true)
+
           toast.success(
             <div>
-              Token successfully minted!<br />
-              Token Address: {newTokenAddress}<br />
-              <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">View on TronScan</a>
-            </div>,
-          );
-          setLoading(false);
+              Token successfully minted!
+              <br />
+              Token Address: {newTokenAddress}
+              <br />
+              <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">
+                View on TronScan
+              </a>
+            </div>
+          )
+          setLoading(false)
         } else {
           toast.success(
             <div>
-              Token minted successfully,go to transaction and show event log and copy address<br />
-              <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">View on TronScan</a>
-            </div>,
-          );
-          setIsTokenMinted(true);
-          setLoading(false);
+              Token minted successfully,go to transaction and show event log and copy address
+              <br />
+              <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">
+                View on TronScan
+              </a>
+            </div>
+          )
+          setIsTokenMinted(true)
+          setLoading(false)
         }
       } else {
         toast.success(
           <div>
-              Token minted successfully,go to transaction and show event log and copy address<br />
-              <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">View on TronScan</a>
-            </div>,
-        );
-        setIsTokenMinted(true);
-        setLoading(false);
+            Token minted successfully,go to transaction and show event log and copy address
+            <br />
+            <a href={tronScannileLink} target="_blank" rel="noopener noreferrer">
+              View on TronScan
+            </a>
+          </div>
+        )
+        setIsTokenMinted(true)
+        setLoading(false)
       }
     } catch (error) {
-      console.error('Error during minting:', error);
+      console.error('Error during minting:', error)
       toast.error('An error occurred while minting tokens. Please try again.', {
         position: 'top-center',
-      });
-      setLoading(false);
+      })
+      setLoading(false)
     }
-  };
+  }
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(contractAddress)
@@ -417,15 +424,28 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
     setTimeout(() => setCopyButtonText('Copy Address'), 2000)
   }
 
-  const handleVerifyToken = async() => {
-    setLoading(true);
-    const getdetails=await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20_adddress}`);   
-    const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task8', { address: address,contract_address:trc20_adddress,token_symbol:getdetails.data.symbol,txhash:txhash });
-    toast.success(`Your token with symbol ${getdetails.data.symbol} founded,Congratulations on completing your task! 🎉`, {
-      position: 'top-center',
-    });
-    if(response.data){
-      setLoading(false);
+  const handleVerifyToken = async () => {
+    setLoading(true)
+    const getdetails = await axios.get(
+      `https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20_adddress}`
+    )
+    const response = await axios.patch(
+      'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task8',
+      {
+        address: address,
+        contract_address: trc20_adddress,
+        token_symbol: getdetails.data.symbol,
+        txhash: txhash,
+      }
+    )
+    toast.success(
+      `Your token with symbol ${getdetails.data.symbol} founded,Congratulations on completing your task! 🎉`,
+      {
+        position: 'top-center',
+      }
+    )
+    if (response.data) {
+      setLoading(false)
       setIsTokenVerified(true)
     }
   }
@@ -433,7 +453,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   return (
     <>
       <GlobalStyle />
-      <Toaster/>
+      <Toaster />
       <PageWrapper>
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
@@ -516,29 +536,27 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               providing the same precision as TRX.
             </HighlightedText>
 
-              
             <ButtonGroup>
-             <Button onClick={handleMint} disabled={isTaskCompleted}>
-              {loading ? (
-               <ScaleLoader height={15} width={4} color="white" />
-               ) : (
-                 isTaskCompleted ? 'Task Completed' : 'Mint Token'
+              <Button onClick={handleMint} disabled={isTaskCompleted}>
+                {loading ? (
+                  <ScaleLoader height={15} width={4} color="white" />
+                ) : isTaskCompleted ? (
+                  'Task Completed'
+                ) : (
+                  'Mint Token'
                 )}
               </Button>
             </ButtonGroup>
 
-            
             {isTokenMinted && (
               <>
                 <ContractAddressBox>
-                <Input
-              type="text"
-              placeholder="Enter Event log address here..."
-              value={trc20_adddress}
-              onChange={(e) => setTrc20address(e.target.value)}
-              />
-
-                  
+                  <Input
+                    type="text"
+                    placeholder="Enter Event log address here..."
+                    value={trc20_adddress}
+                    onChange={(e) => setTrc20address(e.target.value)}
+                  />
                 </ContractAddressBox>
                 <HighlightedText>
                   Great! Your TRC-20 token has been minted. Follow these steps to add it to your
@@ -546,7 +564,10 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                 </HighlightedText>
                 <Label>Steps : </Label>
                 <InstructionsList>
-                  <InstructionItem>Copy the contract address above.</InstructionItem>
+                  <InstructionItem>
+                    Copy the contract address view from click on view transaction show event log and
+                    copy address.
+                  </InstructionItem>
                   <InstructionItem>Open your TronLink wallet.</InstructionItem>
                   <InstructionItem>
                     Click the plus (+) sign located at the right-center of the wallet interface.
@@ -557,15 +578,20 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                   </InstructionItem>
                 </InstructionsList>
                 <ButtonGroup>
-                  <Button onClick={handleVerifyToken}> {loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Verify Token'}</Button>
-                   <a href={txhashlink} target="_blank" rel="noopener noreferrer"><Button>View Transaction</Button></a>
+                  <Button onClick={handleVerifyToken}>
+                    {' '}
+                    {loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Verify Token'}
+                  </Button>
+                  <a href={txhashlink} target="_blank" rel="noopener noreferrer">
+                    <Button>View Transaction</Button>
+                  </a>
                 </ButtonGroup>
               </>
             )}
 
             {isTokenVerified && (
               <ButtonGroup>
-                <ButtonCont onClick={() => navigate('/')}>Continue Your Journe  y</ButtonCont>
+                <ButtonCont onClick={() => navigate('/')}>Continue Your Journey</ButtonCont>
               </ButtonGroup>
             )}
           </Container>

@@ -2,7 +2,8 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
+import { ScaleLoader } from 'react-spinners'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -267,7 +268,8 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
   const [isValid, setIsValid] = useState(false)
-  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   // const getTaskStatus = (): Record<string, boolean> => {
   //   const taskStatus = localStorage.getItem('tasks_status')
@@ -292,23 +294,25 @@ export default function SendTRX({ onBack }: SendTRXProps) {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
-        const username = Cookies.get('username');
+        const username = Cookies.get('username')
         // console.log(username);
-        const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
-        const taskStatus = response.data.is_send_trx_task5; // Adjust based on the actual response structure
-        setIsTaskCompleted(taskStatus); // Update the state based on the task status
-        setIsValid(taskStatus);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data.is_send_trx_task5 // Adjust based on the actual response structure
+        setIsTaskCompleted(taskStatus) // Update the state based on the task status
+        setIsValid(taskStatus)
       } catch (error) {
-        console.error('Error fetching task status:', error);
-        toast.error('Failed to fetch task status.');
+        console.error('Error fetching task status:', error)
+        toast.error('Failed to fetch task status.')
       }
-    };
-    fetchTaskStatus();
-  }, []); // Empty dependency array to run only on component mount
- 
+    }
+    fetchTaskStatus()
+  }, []) // Empty dependency array to run only on component mount
 
   const handleSend = async () => {
     try {
+      setLoading(true)
       if (window.tronWeb && window.tronWeb.ready) {
         const tronLink = window.tronWeb
         const address = tronLink.defaultAddress.base58
@@ -345,16 +349,20 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         // console.log(result.txid)
 
         if (result.result) {
-          const response = await axios.patch('https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task5', {
-            address: address,
-            recepient_address: recipient,
-            amount: amount,
-            txhash: result.txid,
-          })
+          const response = await axios.patch(
+            'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task5',
+            {
+              address: address,
+              recepient_address: recipient,
+              amount: amount,
+              txhash: result.txid,
+            }
+          )
           // console.log(response.data);
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
           })
+          setLoading(false)
           setRecipient('')
           setAmount('')
           setIsValid(true)
@@ -363,17 +371,20 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           toast.error('Transaction Failed!', {
             position: 'top-center',
           })
+          setLoading(false)
         }
       } else {
         toast.error('TronLink wallet is not installed or not logged in.', {
           position: 'top-center',
         })
+        setLoading(false)
       }
     } catch (error) {
       console.error('Error: ', error)
       toast.error('An error occurred while sending TRX.', {
         position: 'top-center',
       })
+      setLoading(false)
     }
   }
 
@@ -388,7 +399,8 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             <Title>Send TRX to Another Address</Title>
             <HighlightedText>
               To safely test transactions, you can create a sub-account on TronLink. This allows you
-              to test with smaller amounts of TRX without risking your main account.
+              to test with smaller amounts of TRX without risking your main account and make sure
+              you are there in <b>shasta</b> network
             </HighlightedText>
 
             <List>
@@ -431,7 +443,15 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               wallet. Please review the details carefully before signing the transaction.
             </Text>
 
-            <Button onClick={handleSend} disabled={isTaskCompleted}>{isTaskCompleted?'Task Completed':'Send TRX'}</Button>
+            <Button onClick={handleSend} disabled={isTaskCompleted || loading}>
+              {loading ? (
+                <ScaleLoader height={15} width={4} color="white" />
+              ) : isTaskCompleted ? (
+                'Task Completed'
+              ) : (
+                'Send TRX'
+              )}
+            </Button>
             <ButtonCont disabled={!isValid} onClick={onBack}>
               {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
             </ButtonCont>
