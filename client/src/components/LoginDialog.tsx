@@ -45,6 +45,7 @@ const Title = styled.p`
   font-weight: 600;
   color: #ffffff;
   text-align: center;
+  font-family: 'Orbitron', sans-serif;
 `
 
 const RoomDescription = styled.div`

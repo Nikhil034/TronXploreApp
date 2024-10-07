@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import styled from 'styled-components'
+import styled ,{keyframes} from 'styled-components'
 import Confetti from 'react-confetti'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
@@ -7,7 +7,7 @@ import logo from '../images/logo.png'
 import lighthouse from '@lighthouse-web3/sdk';
 import toast, { Toaster } from 'react-hot-toast'
 import { ScaleLoader } from 'react-spinners'
-
+import {X} from 'lucide-react'
 
 const Backdrop = styled(motion.div)`
   position: fixed;
@@ -22,6 +22,27 @@ const Backdrop = styled(motion.div)`
   align-items: center;
   z-index: 50;
 `
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 100;
+  padding: 10px;
+  border-radius: 50%;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  svg {
+    color: #fff; // Change this color to match your design
+  }
+`;
+
 const StepList = styled.ol`
   text-align: left;
   margin-top: 20px;
@@ -31,7 +52,19 @@ const StepList = styled.ol`
 const StepItem = styled.li`
   margin-bottom: 10px;
 `
+const PageWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+`
 
+
+const ScrollableContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+`
 
 const Wrapper = styled(motion.div)`
   background: #000000;
@@ -41,8 +74,9 @@ const Wrapper = styled(motion.div)`
   color: #ffffff;
   font-family: 'Poppins', sans-serif;
   text-align: center;
-  max-width: 550px;
-  width: 90%;
+  max-width: 650px;
+  position:relative;
+//   width: 90%;
 `
 
 
@@ -103,7 +137,76 @@ const TransactionLink = styled(motion.a)`
   }
 `
 
+const List = styled.ol`
+  padding-left: 20px;
+  counter-reset: item;
+  list-style-type: none;
+  margin-bottom: 50px;
+`
 
+const slideIn = keyframes`
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`
+
+const ListItem = styled.li`
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: ${slideIn} 0.5s ease-out forwards;
+  position: relative;
+  padding-left: 40px;
+  text-align: left;
+  &::before {
+    content: counter(item);
+    counter-increment: item;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(45deg, #ff0000, #cc0000);
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(255, 0, 0, 0.3);
+  }
+`
+
+
+const Subtitle = styled.h3`
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: left;
+//   color: #ff6666;
+color: #ff0000;
+`
+
+const Text = styled.p`
+  font-size: 14px;
+  color: #ffffff;
+`
+
+const HighlightedText = styled(Text)`
+  margin-bottom: 15px;
+  text-align:left;
+  background-color: rgb(82 79 79 / 80%);
+  padding: 20px;
+  border-left: 4px solid #cc0000;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+`
 const CongratulationsPopup = ({ onClose }) => {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -139,7 +242,6 @@ const CongratulationsPopup = ({ onClose }) => {
       });
 
       const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
-      console.log(LighthouseKey);
 
       // Upload metadata JSON to Lighthouse (inside an array)
       const metadataUploadResponse = await lighthouse.upload(
@@ -268,19 +370,26 @@ const CongratulationsPopup = ({ onClose }) => {
 
 
   return (
+    <PageWrapper>
     <Backdrop initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    
         <Toaster/>
       <Confetti
         width={windowSize.width}
         height={windowSize.height}
         // colors={['#ff0000', '#ffffff', '#cc0000']}
       />
+
+      <ScrollableContent>
       <Wrapper
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', damping: 15 }}
       >
+        <CloseButton onClick={onClose}>
+        <X size={24} />
+      </CloseButton>
         <Logo src={logo} alt="TronXplore Logo" />
         <Title>
           Congratulations on Your <span>Achievement!</span>
@@ -329,17 +438,24 @@ const CongratulationsPopup = ({ onClose }) => {
           )}
         </AnimatePresence>
        
-         <StepList>
-              <StepItem>Go to your TronLink wallet and click on the "Collectibles" section.</StepItem>
-              <StepItem>Make sure your network is set to the Nile Testnet.</StepItem>
-              <StepItem>You will see an option labeled "TXN".</StepItem>
-              <StepItem>Click on the "TXN" option to view your certificate.</StepItem>
-              <StepItem>Note: NFTs may take some time to load into your wallet. Please check back after a few moments if your certificate doesn't appear immediately.</StepItem>
-              <StepItem>Once loaded, your TronXplore certificate should be visible in your wallet.</StepItem>
-        </StepList>
+        {showSteps || isCertified && (
+            <>
+             <Subtitle>How to show your NFT certificate in your wallet : </Subtitle>
+         <List>
+              <ListItem>Go to your TronLink wallet and click on the "Collectibles" section.</ListItem>
+              <ListItem>Make sure your network is set to the Nile Testnet.</ListItem>
+              <ListItem>You will see an option labeled "TXN".</ListItem>
+              <ListItem>Click on the "TXN" option to view your certificate.</ListItem>
+        </List>
+              <HighlightedText>Note: NFTs may take some time to load into your wallet. Please check back after a few moments if your certificate doesn't appear immediately.
+              Once loaded, your TronXplore certificate should be visible in your wallet.</HighlightedText>
+        </>
+         )}
 
       </Wrapper>
+      </ScrollableContent>
     </Backdrop>
+    </PageWrapper>
   )
 }
 

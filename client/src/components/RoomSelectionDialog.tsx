@@ -9,6 +9,7 @@ import { useAppSelector } from '../hooks'
 import phaserGame from '../PhaserGame'
 import Bootstrap from '../scenes/Bootstrap'
 import logo from '../images/logo.png'
+import { ScaleLoader } from 'react-spinners'
 
 const Backdrop = styled(motion.div)`
   position: fixed;
@@ -70,7 +71,8 @@ const Title = styled.h1`
   font-size: 26px;
   color: #ffffff;
   text-align: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Orbitron', sans-serif;
+  font-weight:600;
 `
 
 const Content = styled.div`
@@ -128,8 +130,10 @@ export default function RoomSelectionDialog() {
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false)
   const [showSnackbar, setShowSnackbar] = useState(false)
   const lobbyJoined = useAppSelector((state) => state.room.lobbyJoined)
+  const [loading, setLoading] = useState(false);
 
   const handleConnect = () => {
+    setLoading(true);
     if (lobbyJoined) {
       const bootstrap = phaserGame.scene.keys.bootstrap as Bootstrap
       bootstrap.network
@@ -138,6 +142,7 @@ export default function RoomSelectionDialog() {
         .catch((error) => console.error(error))
     } else {
       setShowSnackbar(true)
+      setLoading(false);
     }
   }
 
@@ -224,7 +229,7 @@ export default function RoomSelectionDialog() {
                     transition={{ type: 'spring', stiffness: 300 }}
                   />
                   <StyledButton variant="contained" onClick={handleConnect}>
-                    Connect to public lobby
+                   {loading ? <ScaleLoader height={15} width={4} color="white" /> : ' Connect to public lobby '}
                   </StyledButton>
                 </Content>
               </motion.div>
