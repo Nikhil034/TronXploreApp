@@ -294,7 +294,7 @@ const LeaderBoard: React.FC<LeaderBoardProps> = ({ onClose }) => {
               <TableCell>
                 {entry.completed_at ? (
                   <Tooltip title="View in Explorer">
-                    <ActionButton size="small" onClick={() => window.open(`https://explorer.example.com/address/${entry.address}`, '_blank')}>
+                    <ActionButton size="small" onClick={() => window.open(`https://nile.tronscan.org/#/transaction/${entry.NFT_hash}`, '_blank')}>
                       <OpenInNewIcon />
                     </ActionButton>
                   </Tooltip>

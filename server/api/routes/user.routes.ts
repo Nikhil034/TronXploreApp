@@ -1,6 +1,6 @@
 
 import express from 'express'
-import { createUser } from '../controllers/user.controller'
+import { createUser, updateNftAndCompleteTask } from '../controllers/user.controller'
 import { CreateWallet_Task1 } from '../controllers/user.controller'
 import { Connectwalletaddress_Task2 } from '../controllers/user.controller'
 import { SignMessage_Task3 } from '../controllers/user.controller'
@@ -28,6 +28,7 @@ router.patch('/user_task7', StakeTrxAndEnergy_Task7)
 router.patch('/user_task8', Trc20Mint_Task8)
 router.patch('/user_task9', Trc20Send_Task9)
 router.patch('/user_task10', ViewTransaction_Task10)
+router.patch('/user_nft',updateNftAndCompleteTask)
 
 router.use(getRoutes)
 

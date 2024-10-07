@@ -4,6 +4,7 @@
 interface ImportMetaEnv {
     readonly VITE_SERVER_URL: string;
     readonly PORT:number;
+    readonly VITE_LIGHTHOUSE_ID: string;
     // more env variables...
   }
   

@@ -11,6 +11,7 @@ import Frame5 from './frames/frame5'
 import Frame8 from './frames/frame8'
 import Frame8A from './frames/frame8A'
 import Frame10 from '../src/frames/frame10'
+import Cookies from 'js-cookie';
 
 import { useAppSelector } from './hooks'
 
@@ -30,6 +31,8 @@ import Frame6A from './frames/frame6A'
 import Frame7A from './frames/frame7A'
 import Frame9A from './frames/frame9A'
 import Frame10B from './frames/frame10B'
+import CongratulationsPopup from './components/CongratulationPopup'
+import axios from 'axios'
 
 declare global {
   interface Window {
@@ -65,10 +68,49 @@ function AppContent() {
   const computerDialogOpen = useAppSelector((state) => state.computer.computerDialogOpen)
   const whiteboardDialogOpen = useAppSelector((state) => state.whiteboard.whiteboardDialogOpen)
   const roomJoined = useAppSelector((state) => state.room.roomJoined)
+  const [showCongratulations, setShowCongratulations] = useState(false)
+
 
   useEffect(() => {
     setIsGameRoute(location.pathname === '/')
   }, [location])
+
+  useEffect(() => {
+    // Check if popup has already been shown
+    const popupShown = localStorage.getItem('congratulationsShown')
+    console.log(popupShown);
+
+
+    // Fetch task status from the API
+    const fetchTaskStatus = async () => {
+      try {
+        const username = Cookies.get('username');
+        console.log(username);
+        const response = await axios.get(
+          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+        )
+        const taskStatus = response.data
+        // console.log(taskStatus);
+
+
+        // Check if all tasks are completed
+        const allTasksCompleted = Object.values(taskStatus).every((status) => status === true)
+
+
+        // If all tasks are completed and popup hasn't been shown, show it
+        if (allTasksCompleted && !popupShown) {
+          setShowCongratulations(true)
+          localStorage.setItem('congratulationsShown', 'true')
+        }
+      } catch (error) {
+        console.error('Error fetching task status:', error)
+      }
+    }
+
+
+    fetchTaskStatus()
+  }, [])
+
 
   const handleNavigation = useCallback((path: string) => {
     navigate(path)
@@ -110,6 +152,9 @@ function AppContent() {
       <Backdrop $isGameRoute={isGameRoute}>
         {ui}
         {!computerDialogOpen && !whiteboardDialogOpen && <HelperButtonGroup />}
+         {showCongratulations && (
+          <CongratulationsPopup onClose={() => setShowCongratulations(false)} />
+        )}
       </Backdrop>
       <Routes>
         <Route path="/task1" element={<FullScreenFrame><Frame1 onBack={() => navigate('/')} /></FullScreenFrame>} />
