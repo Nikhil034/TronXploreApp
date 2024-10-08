@@ -222,25 +222,25 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
     fetchTaskStatus()
   }, []) // Empty dependency array to run only on component mount
 
-  // useEffect(() => {
-  //   // Check if the task is already completed when component mounts
-  //   const taskStatus = getTaskStatus()
-  //   if (taskStatus['is_create_wallet_task1']) {
-  //     setTaskCompleted(true)
-  //   }
-  // }, [])
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_create_wallet_task1']) {
+      setTaskCompleted(true)
+    }
+  }, [])
 
-  // const getTaskStatus = (): Record<string, boolean> => {
-  //   const taskStatus = localStorage.getItem('tasks_status')
-  //   console.log(taskStatus)
-  //   return taskStatus ? JSON.parse(taskStatus) : {}
-  // }
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    console.log(taskStatus)
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
 
-  // const updateTaskStatus = (taskKey: string) => {
-  //   const taskStatus = getTaskStatus()
-  //   taskStatus[taskKey] = true
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
-  // }
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
   const handleTaskCompletion = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
@@ -257,7 +257,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
         // console.log(response)
 
         // Update localStorage
-        // updateTaskStatus('is_create_wallet_task1')
+        updateTaskStatus('is_create_wallet_task1')
 
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',

@@ -273,9 +273,11 @@ const Link = styled.a`
 `
 interface TronEnergyExplainerProps {
   onBack: () => void
+  onFinish:()=>void
 }
 
-export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps) {
+
+export default function TronEnergyExplainer({ onBack,onFinish }: TronEnergyExplainerProps) {
   const [address, setAddress] = useState('')
   const [blockno, setBlockno] = useState('')
   const [energy, setEnergy] = useState('')
@@ -284,6 +286,27 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   // const [netfee, setNetfee] = useState(0)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_view_transaction_task10']) {
+      setIsValid(true)
+    }
+  }, [])
+
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
+
+
 
   useEffect(() => {
     if (!window.tronWeb || !window.tronWeb.ready) {
@@ -375,6 +398,7 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
         toast.success('Congratulations on completing Final task! 🎉', {
           position: 'top-center',
         })
+        updateTaskStatus('is_view_transaction_task10');
         setBlockno('')
         setEnergy('')
         setLoading(false)
@@ -386,6 +410,35 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
       })
       setLoading(false)
     }
+  }
+
+  const handleFinish = () => {
+    // Set all tasks as completed
+    const taskKeys = [
+      'is_create_wallet_task1',
+      'is_connect_wallet_task2',
+      'is_sign_tx_task3',
+      'is_get_trx_task4',
+      'is_send_trx_task5',
+      'is_check_bandwidth_task6',
+      'is_get_energy_task7',
+      'is_trc20_mint_task8',
+      'is_trc20_send_task9',
+      'is_view_transaction_task10'
+    ]
+
+    const completedTasks = taskKeys.reduce((acc, key) => {
+      acc[key] = true
+      return acc
+    }, {})
+
+    localStorage.setItem('tasks_status', JSON.stringify(completedTasks))
+
+    // Call the onFinish prop to trigger the congratulations popup
+    onFinish()
+
+    // Navigate to the home page
+    navigate('/')
   }
 
   return (
@@ -446,7 +499,7 @@ export default function TronEnergyExplainer({ onBack }: TronEnergyExplainerProps
                   'Check it!'
                 )}
               </Button>
-              <ButtonCont onClick={() => navigate('/')} disabled={!isValid}>
+              <ButtonCont onClick={handleFinish} disabled={!isValid}>
                 Finish
               </ButtonCont>
             </ButtonGroup>

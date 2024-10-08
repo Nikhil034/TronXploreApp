@@ -253,7 +253,7 @@ interface SendTRXProps {
 export default function SendTRX({ onBack }: SendTRXProps) {
   const navigate = useNavigate()
   const [recipient, setRecipient] = useState('')
-  const [amount, setAmount] = useState<number>()
+  const [amount, setAmount] = useState<number | undefined>(undefined);
   const [txnHash, setTxnHash] = useState('')
   const [showVerificationSteps, setShowVerificationSteps] = useState(false)
   const [verificationUrl, setVerificationURL] = useState('')
@@ -261,6 +261,26 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const [verificationHash, setVerificationHash] = useState('')
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
+  const [isValid,setIsValid]=useState(false);
+
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_trc20_send_task9']) {
+      setIsValid(true)
+    }
+  }, [])
+
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -284,7 +304,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
 
   const handleSend = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
-      if (!recipient || !amount) {
+      if (!recipient || !amount|| amount===undefined) {
         toast.error('Please enter both the recipient address and the amount of tokens to send.', {
           position: 'top-center',
         })
@@ -320,13 +340,15 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         )
 
         // Convert amount to correct number of decimals (assuming 18 decimals)
-        const tokenDecimals = 18
-        const tokenAmount = window.tronWeb.toBigNumber(amount * 10 ** tokenDecimals)
+        // const tokenDecimals = 18
+        // const tokenAmount = window.tronWeb.toBigNumber(amount * 10 ** tokenDecimals)
+        const tokenDecimals = 18; // Adjust if your token has a different number of decimals
+        const tokenAmount = window.tronWeb.toBigNumber(amount * (10 ** tokenDecimals));
         console.log(tokenAmount)
         console.log(amount)
 
         // Send the transaction
-        const transaction = await contract.transfer(recipient, amount.toString()).send()
+        const transaction = await contract.transfer(recipient, tokenAmount.toString()).send()
 
         // Get transaction hash
         const txnHash = transaction // In TronWeb, the send function returns the transaction hash
@@ -373,10 +395,20 @@ export default function SendTRX({ onBack }: SendTRXProps) {
 
         // Get detailed transaction info
         const txInfoDetails = await window.tronWeb.trx.getTransactionInfo(txnHash)
+        if (!txInfoDetails) {
+          toast.error('Transaction details not available yet. Please try again in a few moments.');
+          return;
+        }
 
         // Extract actual block number and bandwidth usage
         const blockNumber = txInfoDetails.blockNumber
-        const bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee
+        let bandwidthUsage = 0;
+
+        if (txInfoDetails.receipt) {
+          bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee || 0;
+          energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee || 0;
+        }
+    
 
         // console.log(`Actual Block Number: ${blockNumber}`);
         // console.log(`Bandwidth Usage: ${bandwidthUsage}`);
@@ -395,6 +427,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           position: 'top-center',
         })
         setLoading(false)
+        updateTaskStatus('is_trc20_send_task9');
       }
     } catch (error) {
       console.error('Error:', error)
@@ -428,12 +461,23 @@ export default function SendTRX({ onBack }: SendTRXProps) {
 
             <Subtitle>Enter the Amount of TRX to Send</Subtitle>
             <Input
-              type="number"
-              placeholder="Enter amount of TRX..."
-              value={amount}
-              onChange={(e) => setAmount(window.tronWeb.toDecimal(e.target.value))}
-              aria-label="Amount of TRX to send"
-            />
+             type="number"
+             placeholder="Enter amount of TRX..."
+             value={amount === undefined ? '' : amount}
+             onChange={(e) => {
+             const inputValue = e.target.value;
+             if (inputValue === '') {
+             setAmount(undefined);
+            } else {
+            const parsedValue = parseFloat(inputValue);
+            if (!isNaN(parsedValue)) {
+             setAmount(parsedValue);
+           }
+          }
+         }}
+         aria-label="Amount of TRX to send"
+         step="any"
+         />
 
             <ButtonContainer>
               <Button onClick={handleSend} disabled={isTaskCompleted || loading}>

@@ -431,24 +431,24 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
     fetchTaskStatus()
   }, []) // Empty dependency array to run only on component mount
 
-  // const getTaskStatus = (): Record<string, boolean> => {
-  //   const taskStatus = localStorage.getItem('tasks_status')
-  //   return taskStatus ? JSON.parse(taskStatus) : {}
-  // }
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
 
-  // const updateTaskStatus = (taskKey: string) => {
-  //   const taskStatus = getTaskStatus()
-  //   taskStatus[taskKey] = true
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
-  // }
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
-  // useEffect(() => {
-  //   // Check if the task is already completed when component mounts
-  //   const taskStatus = getTaskStatus()
-  //   if (taskStatus['is_check_bandwidth_task6']) {
-  //     setIsValid(true)
-  //   }
-  // }, [])
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_check_bandwidth_task6']) {
+      setIsValid(true)
+    }
+  }, [])
 
   const fetchTransactionUsage = async (transactionHash) => {
     try {
@@ -561,7 +561,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
       })
       setIsValid(true)
       setLoading(false)
-      // updateTaskStatus('is_check_bandwidth_task6')
+      updateTaskStatus('is_check_bandwidth_task6')
     } catch (error: any) {
       toast.error(`Failed to complete the task: ${error.message}`, {
         position: 'top-center',

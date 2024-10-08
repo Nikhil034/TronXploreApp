@@ -125,11 +125,11 @@ export default function HelperButtonGroup() {
   const [showLeaderBoard, setShowLeaderBoard] = useState(false)
 
   const guideSteps = [
-    '1. Go to the bottom-left room to complete your first three tasks.',
-    '2. Go to the bottom-right room to complete the next four tasks.',
-    '3. Go to the top-left room to complete the next two tasks.',
-    '4. Go to the top-right room to complete the final two tasks.',
-    '5. Get your certificate after completing all tasks!',
+    '1. Your progress is indicated by a glowing point on the game board. Follow it to know your next task.',
+    '2. When you reach the glowing point, wait for a moment. A popup will appear with the task details.',
+    '3. Carefully read all the instructions. The goal is to learn more about the Tron blockchain, so take your time.',
+    '4. After completing all the tasks, you will qualify to receive your certificate.',
+    'Note :- Please make sure you are on right network before perform any activity!'
   ]
 
   return (

@@ -70,46 +70,50 @@ function AppContent() {
   const roomJoined = useAppSelector((state) => state.room.roomJoined)
   const [showCongratulations, setShowCongratulations] = useState(false)
 
+  const handleFinish = useCallback(() => {
+    setShowCongratulations(true)
+  }, [])
+
 
   useEffect(() => {
     setIsGameRoute(location.pathname === '/')
   }, [location])
 
-  useEffect(() => {
-    // Check if popup has already been shown
-    const popupShown = localStorage.getItem('congratulationsShown')
-    console.log(popupShown);
+  // useEffect(() => {
+  //   // Check if popup has already been shown
+  //   const popupShown = localStorage.getItem('congratulationsShown')
+  //   console.log(popupShown);
 
 
-    // Fetch task status from the API
-    const fetchTaskStatus = async () => {
-      try {
-        const username = Cookies.get('username');
-        console.log(username);
-        const response = await axios.get(
-          `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
-        )
-        const taskStatus = response.data
-        // console.log(taskStatus);
+  //   // Fetch task status from the API
+  //   const fetchTaskStatus = async () => {
+  //     try {
+  //       const username = Cookies.get('username');
+  //       console.log(username);
+  //       const response = await axios.get(
+  //         `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
+  //       )
+  //       const taskStatus = response.data
+  //       // console.log(taskStatus);
 
 
-        // Check if all tasks are completed
-        const allTasksCompleted = Object.values(taskStatus).every((status) => status === true)
+  //       // Check if all tasks are completed
+  //       const allTasksCompleted = Object.values(taskStatus).every((status) => status === true)
 
 
-        // If all tasks are completed and popup hasn't been shown, show it
-        if (allTasksCompleted && !popupShown) {
-          setShowCongratulations(true)
-          localStorage.setItem('congratulationsShown', 'true')
-        }
-      } catch (error) {
-        console.error('Error fetching task status:', error)
-      }
-    }
+  //       // If all tasks are completed and popup hasn't been shown, show it
+  //       if (allTasksCompleted && !popupShown) {
+  //         setShowCongratulations(true)
+  //         localStorage.setItem('congratulationsShown', 'true')
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching task status:', error)
+  //     }
+  //   }
 
 
-    fetchTaskStatus()
-  }, [])
+  //   fetchTaskStatus()
+  // }, [])
 
 
   const handleNavigation = useCallback((path: string) => {
@@ -152,9 +156,6 @@ function AppContent() {
       <Backdrop $isGameRoute={isGameRoute}>
         {ui}
         {!computerDialogOpen && !whiteboardDialogOpen && <HelperButtonGroup />}
-         {showCongratulations && (
-          <CongratulationsPopup onClose={() => setShowCongratulations(false)} />
-        )}
       </Backdrop>
       <Routes>
         <Route path="/task1" element={<FullScreenFrame><Frame1 onBack={() => navigate('/')} /></FullScreenFrame>} />
@@ -174,9 +175,12 @@ function AppContent() {
         <Route path="/task9_continue" element={<FullScreenFrame><Frame9A onBack={() => navigate('/task9')} /></FullScreenFrame>} />
         <Route path="/task10" element={<FullScreenFrame><Frame10 onBack={() => navigate('/')} /></FullScreenFrame>} />
         <Route path="/task10_terminology" element={<FullScreenFrame><Frame10A onBack={() => navigate('/task10')} /></FullScreenFrame>} />
-        <Route path="/task10_continue" element={<FullScreenFrame><Frame10B onBack={() => navigate('/task10_terminology')} /></FullScreenFrame>} />
+        <Route path="/task10_continue" element={<FullScreenFrame><Frame10B onBack={() => navigate('/task10_terminology')} onFinish={handleFinish}/></FullScreenFrame>} />
         {/* <Route path='/continue' element={<FullScreenFrame><Frame10A onBack={() => navigate('/task10')} /></FullScreenFrame>} /> */}
       </Routes>
+      {showCongratulations && (
+          <CongratulationsPopup onClose={() => setShowCongratulations(false)} />
+        )}
     </NavigationContext.Provider>
   )
 }

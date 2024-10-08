@@ -188,6 +188,29 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false) // Track task status
   const [isValid, setIsValid] = useState(false)
+  const [taskCompleted,setTaskCompleted]=useState(false);
+
+
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = JSON.parse(localStorage.getItem('tasks_status') || '{}')
+    if (taskStatus['is_connect_wallet_task2']) {
+      setTaskCompleted(true)
+    }
+  }, [])
+
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = JSON.parse(localStorage.getItem('tasks_status') || '{}')
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+
+    // Emit a custom event to notify that a task has been completed
+    const event = new CustomEvent('taskCompleted', { detail: taskKey })
+    window.dispatchEvent(event)
+
+    setTaskCompleted(true)
+  }
+
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -231,6 +254,7 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
         })
+        updateTaskStatus('is_connect_wallet_task2');
         setIsTaskCompleted(true)
         setIsValid(true)
       } else {

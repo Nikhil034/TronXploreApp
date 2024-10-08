@@ -285,24 +285,24 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
 
-  // const getTaskStatus = (): Record<string, boolean> => {
-  //   const taskStatus = localStorage.getItem('tasks_status')
-  //   return taskStatus ? JSON.parse(taskStatus) : {}
-  // }
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
 
-  // const updateTaskStatus = (taskKey: string) => {
-  //   const taskStatus = getTaskStatus()
-  //   taskStatus[taskKey] = true
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
-  // }
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
-  // useEffect(() => {
-  //   // Check if the task is already completed when component mounts
-  //   const taskStatus = getTaskStatus()
-  //   if (taskStatus['is_trx_balance_task4']) {
-  //     setIsValid(true)
-  //   }
-  // }, [])
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_trx_balance_task4']) {
+      setIsValid(true)
+    }
+  }, [])
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -348,7 +348,7 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
         })
         setIsValid(true)
         setLoading(false)
-        // updateTaskStatus('is_get_trx_task4')
+        updateTaskStatus('is_get_trx_task4')
       } else {
         toast.error('Stil balance is equal or not greater then your recorded last balance !', {
           position: 'top-center',

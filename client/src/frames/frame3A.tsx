@@ -254,13 +254,13 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
 
-  // useEffect(() => {
-  //   // Check if the task is already completed when component mounts
-  //   const taskStatus = getTaskStatus()
-  //   if (taskStatus['is_sign_tx_task3']) {
-  //     setIsValid(true)
-  //   }
-  // }, [])
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_sign_tx_task3']) {
+      setIsValid(true)
+    }
+  }, [])
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -272,7 +272,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
           `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
         )
         const taskStatus = response.data.is_sign_tx_task3 // Adjust based on the actual response structure
-        alert(taskStatus)
+        // alert(taskStatus)
         setIsTaskCompleted(taskStatus) // Update the state based on the task status
         setIsValid(taskStatus)
       } catch (error) {
@@ -288,11 +288,11 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
     return taskStatus ? JSON.parse(taskStatus) : {}
   }
 
-  // const updateTaskStatus = (taskKey: string) => {
-  //   const taskStatus = getTaskStatus()
-  //   taskStatus[taskKey] = true
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
-  // }
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
   const handleSignTransaction = async () => {
     try {
@@ -331,6 +331,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
           })
+          updateTaskStatus('is_sign_tx_task3');
           setIsValid(true)
           setLoading(false)
         } else {

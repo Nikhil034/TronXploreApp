@@ -61,7 +61,7 @@ export default class MyPlayer extends Player {
         x: 705,
         y: 500,
         message:
-          'Welcome to the tron Adventure! To begin your journey, head to the bottom-left room to complete your first three tasks.',
+          'Welcome to the Tron Adventure! Begin your journey by following the glowing points.',
         shown: false,
         taskKey: 'Popup-1',
       },
@@ -69,7 +69,7 @@ export default class MyPlayer extends Player {
         x: 402,
         y: 460,
         message:
-          "You've reached the right place! Here you can complete your first three tasks. Look around for interactive objects to get started.",
+          "You've made it! Explore the area and interact with glowing objects to uncover tasks and begin your adventure. Dive in and discover what’s waiting for you!",
         shown: false,
         taskKey: 'Popup-2',
       },
@@ -166,7 +166,7 @@ export default class MyPlayer extends Player {
         x: 692,
         y: 313,
         message:
-          'Welcome to the Transaction Review and Certification Center! Here you can examine your blockchain activity and receive recognition for your achievements.',
+          'Welcome! Here you can review your blockchain activity',
         shown: false,
         taskKey: 'Popup-5',
       },

@@ -271,24 +271,24 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
 
-  // const getTaskStatus = (): Record<string, boolean> => {
-  //   const taskStatus = localStorage.getItem('tasks_status')
-  //   return taskStatus ? JSON.parse(taskStatus) : {}
-  // }
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
 
-  // const updateTaskStatus = (taskKey: string) => {
-  //   const taskStatus = getTaskStatus()
-  //   taskStatus[taskKey] = true
-  //   localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
-  // }
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
 
-  // useEffect(() => {
-  //   // Check if the task is already completed when component mounts
-  //   const taskStatus = getTaskStatus()
-  //   if (taskStatus['is_send_trx_task5']) {
-  //     setIsValid(true)
-  //   }
-  // }, [])
+  useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_send_trx_task5']) {
+      setIsValid(true)
+    }
+  }, [])
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -366,7 +366,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           setRecipient('')
           setAmount('')
           setIsValid(true)
-          // updateTaskStatus('is_send_trx_task5')
+          updateTaskStatus('is_send_trx_task5')
         } else {
           toast.error('Transaction Failed!', {
             position: 'top-center',

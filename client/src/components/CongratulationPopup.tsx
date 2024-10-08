@@ -330,7 +330,7 @@ const CongratulationsPopup = ({ onClose }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (window.tronWeb && window.tronWeb.ready) {
-        console.log(import.meta.env.VITE_LIGHTHOUSE_ID)
+        // console.log(import.meta.env.VITE_LIGHTHOUSE_ID)
         const address = (window as any).tronWeb.defaultAddress.base58
         try {
           setUserAddress(address)
@@ -446,6 +446,22 @@ const CongratulationsPopup = ({ onClose }) => {
               <ListItem>Make sure your network is set to the Nile Testnet.</ListItem>
               <ListItem>You will see an option labeled "TXN".</ListItem>
               <ListItem>Click on the "TXN" option to view your certificate.</ListItem>
+              <ListItem>
+                      If you don't see your certificate in the Collectibles section, look for the
+                      plus (+) icon located at the right-center of the screen.
+                    </ListItem>
+                    <ListItem>
+                      Click the plus icon and enter the contract address: 
+                      <span className='text-[#ff0000] font-semibold'>
+
+                      TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo
+                      </span>
+                    </ListItem>
+                    <ListItem>Select "TXN" from the list to view your certificate.</ListItem>
+                    <ListItem>
+                      Please be patient as the certificate image may take some time to load
+                      completely.
+                    </ListItem>
         </List>
               <HighlightedText>Note: NFTs may take some time to load into your wallet. Please check back after a few moments if your certificate doesn't appear immediately.
               Once loaded, your TronXplore certificate should be visible in your wallet.</HighlightedText>

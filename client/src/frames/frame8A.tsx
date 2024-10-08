@@ -295,6 +295,25 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   const [isValid, setIsValid] = useState(false)
 
   useEffect(() => {
+    // Check if the task is already completed when component mounts
+    const taskStatus = getTaskStatus()
+    if (taskStatus['is_trc20_mint_task8']) {
+      setIsValid(true)
+    }
+  }, [])
+
+  const getTaskStatus = (): Record<string, boolean> => {
+    const taskStatus = localStorage.getItem('tasks_status')
+    return taskStatus ? JSON.parse(taskStatus) : {}
+  }
+
+  const updateTaskStatus = (taskKey: string) => {
+    const taskStatus = getTaskStatus()
+    taskStatus[taskKey] = true
+    localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
+  }
+
+  useEffect(() => {
     // Fetch the task status when the component loads
     const fetchTaskStatus = async () => {
       try {
@@ -444,6 +463,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
         position: 'top-center',
       }
     )
+    updateTaskStatus('is_trc20_mint_task8');
     if (response.data) {
       setLoading(false)
       setIsTokenVerified(true)
