@@ -242,6 +242,7 @@ const CongratulationsPopup = ({ onClose }) => {
       });
 
       const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
+      console.log(LighthouseKey)
 
       // Upload metadata JSON to Lighthouse (inside an array)
       const metadataUploadResponse = await lighthouse.upload(

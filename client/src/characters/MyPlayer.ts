@@ -534,6 +534,15 @@ export default class MyPlayer extends Player {
         case 'is_get_energy_task7':
           this.scene.game.events.emit('setFrame', '/task7')
           break
+        case 'is_trc20_mint_task8':
+            this.scene.game.events.emit('setFrame', '/task8')
+            break  
+        case 'is_trc20_send_task9':
+             this.scene.game.events.emit('setFrame', '/task9')
+              break 
+        case 'is_view_transaction_task10':
+                this.scene.game.events.emit('setFrame', '/task9')
+                 break             
       }
     } else {
       switch (buttonText) {

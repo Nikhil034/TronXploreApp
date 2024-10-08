@@ -481,7 +481,7 @@ export default function TronEnergyExplainer({ onBack,onFinish }: TronEnergyExpla
               value={blockno}
               onChange={(e) => setBlockno(e.target.value)}
             />
-            <CardTitle> Enter your last transaction Energy</CardTitle>
+            <CardTitle> Enter your last transaction Bandwidth</CardTitle>
             <Input
               type="number"
               placeholder="Enter Bandwidth here..."
