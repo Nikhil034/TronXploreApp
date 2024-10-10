@@ -233,10 +233,7 @@ const CongratulationsPopup = ({ onClose }) => {
   };
 
    useEffect(() => {
-    // Check if popup has already been shown
-    const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
-    console.log(LighthouseKey)
-    console.log(import.meta.env);
+    const load=import.meta.env;
   }, [])
 
 
