@@ -408,7 +408,7 @@ export default class MyPlayer extends Player {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
-    console.log('player position', playerX, playerY)
+    // console.log('player position', playerX, playerY)
     const taskStatus = this.getTaskStatus()
     const currentTime = this.scene.time.now
 

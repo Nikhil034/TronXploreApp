@@ -232,6 +232,13 @@ const CongratulationsPopup = ({ onClose }) => {
     // console.log(`Upload Progress: ${percentageDone.toFixed(2)}%`); // Fix to two decimals
   };
 
+   useEffect(() => {
+    // Check if popup has already been shown
+    const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
+    console.log(LighthouseKey)
+    console.log(import.meta.env);
+  }, [])
+
 
   const handleMintCertificate = async () => {
     // setLoading(true)
