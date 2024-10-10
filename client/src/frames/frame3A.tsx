@@ -296,26 +296,32 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
 
   const handleSignTransaction = async () => {
     try {
+      // Check if TronLink is available and ready
       if (window.tronWeb && window.tronWeb.ready) {
         setLoading(true)
+  
+        // Sign the message
         const message = 'Hello, TronWeb! This is a test message.'
-        const messageHex = (window as any).tronWeb.toHex(message)
-
-        const signedMessage = await (window as any).tronWeb.trx.sign(messageHex)
-        // console.log('Signed message:', signedMessage)
-
-        const address = (window as any).tronWeb.defaultAddress.base58
-        const isValidSignature = (window as any).tronWeb.trx.verifyMessage(
+        const messageHex = window.tronWeb.toHex(message)
+        const signedMessage = await window.tronWeb.trx.sign(messageHex)
+  
+        // Get the current address from TronWeb
+        const address = window.tronWeb.defaultAddress.base58
+  
+        // Verify the signed message
+        const isValidSignature = window.tronWeb.trx.verifyMessage(
           messageHex,
           signedMessage,
           address
         )
-        // console.log('Signature is valid:', isValidSignature)
-
+  
         if (isValidSignature) {
-          console.log('come to signature!')
+          // console.log('come to signature!')
+  
+          // Get balance and send API request
           const balance = await window.tronWeb.trx.getBalance(address)
-          console.log(`balance=${balance} and address=${address}`)
+          // console.log(`balance=${balance} and address=${address}`)
+          
           const response = await axios.patch(
             'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task3',
             {
@@ -323,16 +329,17 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
               balance: balance,
             }
           )
-          console.log('Response:', response.data)
-
-          // Update localStorage
-          // updateTaskStatus('is_sign_tx_task3')
-
+          // console.log('Response:', response.data)
+  
+          // Show success notification
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
           })
-          updateTaskStatus('is_sign_tx_task3');
+  
+          // Update task status and state
+          updateTaskStatus('is_sign_tx_task3')
           setIsValid(true)
+          setIsTaskCompleted(true)
           setLoading(false)
         } else {
           toast.error('Message signed, but verification failed. Check the console for details!', {
@@ -340,10 +347,33 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
           })
         }
       } else {
-        toast.error('Wallet not detected or need to unlock!', {
-          position: 'top-center',
-        })
-        setLoading(false)
+        // Wallet is disconnected, prompt TronLink connection
+        const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+        if (!tronLinkInstalled) {
+          toast.error('TronLink not detected. Please install TronLink wallet!', {
+            position: 'top-center',
+          })
+          setLoading(false);
+        } else {
+          // Request TronLink to connect
+          try {
+            await window.tronWeb.request({
+              method: 'tron_requestAccounts',
+            })
+            toast.success('TronLink connected. Please try signing again.', {
+              position: 'top-center',
+            })
+            setLoading(false)
+          } catch (error) {
+            toast.error('Failed to connect to TronLink. Please try again!', {
+              position: 'top-center',
+            })
+            setLoading(false)
+          }
+        }
+  
+        
       }
     } catch (error: any) {
       console.error('Error details:', error)
@@ -351,7 +381,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
       alert('Error: ' + error.message)
     }
   }
-
+  
   return (
     <>
       <GlobalStyle />

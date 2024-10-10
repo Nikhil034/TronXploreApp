@@ -408,7 +408,7 @@ export default class MyPlayer extends Player {
     if (this.popupShown) return
     const playerX = Math.round(this.x)
     const playerY = Math.round(this.y)
-    // console.log('player position', playerX, playerY)
+    console.log('player position', playerX, playerY)
     const taskStatus = this.getTaskStatus()
     const currentTime = this.scene.time.now
 
@@ -442,7 +442,7 @@ export default class MyPlayer extends Player {
   // }
   private showPopup(message: string, x: number, y: number, buttonText?: string, taskKey?: string) {
     this.popupShown = true
-    console.log('again come increase x and y')
+    // console.log('again come increase x and y')
 
     // Create a container for the popup
     this.popup = this.scene.add.container(x, y)
@@ -541,7 +541,7 @@ export default class MyPlayer extends Player {
              this.scene.game.events.emit('setFrame', '/task9')
               break 
         case 'is_view_transaction_task10':
-                this.scene.game.events.emit('setFrame', '/task9')
+                this.scene.game.events.emit('setFrame', '/task10')
                  break             
       }
     } else {

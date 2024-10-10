@@ -15,12 +15,14 @@ const Backdrop = styled(motion.div)`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter:blur(3px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 50;
+  overflow:hidden;
 `
 const CloseButton = styled.button`
   position: absolute;
@@ -55,8 +57,12 @@ const StepItem = styled.li`
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  top:0;
+  left:0;
+  pointer-events:auto;
+  height: 100%;
+  width:100%;
+  // overflow: hidden;
 `
 
 
@@ -223,8 +229,24 @@ const CongratulationsPopup = ({ onClose }) => {
     let total = Number(progressData?.total) || 1;  // Ensure total is a valid number and prevent division by zero
     let uploaded = Number(progressData?.uploaded) || 0; 
     let percentageDone = 100 - (uploaded / total) * 100; // Calculate percentage properly
-    console.log(`Upload Progress: ${percentageDone.toFixed(2)}%`); // Fix to two decimals
+    // console.log(`Upload Progress: ${percentageDone.toFixed(2)}%`); // Fix to two decimals
   };
+
+
+  const handleMintCertificate = async () => {
+    // setLoading(true)
+    try {
+      await uploadFileAndMint()
+      setShowTransaction(true)
+      setIsCertified(true)
+    } catch (error) {
+      // console.error('Error minting certificate:', error)
+      toast.error('Failed to mint certificate. Please try again.')
+      setLoading(false);
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const uploadFileAndMint = async () => {
     try {
@@ -242,7 +264,10 @@ const CongratulationsPopup = ({ onClose }) => {
       });
 
       const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
-      console.log(LighthouseKey)
+      if(LighthouseKey){
+        console.log('TRUE');
+      }
+      // console.log(LighthouseKey)
 
       // Upload metadata JSON to Lighthouse (inside an array)
       const metadataUploadResponse = await lighthouse.upload(
@@ -254,10 +279,10 @@ const CongratulationsPopup = ({ onClose }) => {
 
       // Get the CID for the metadata
       const metadataCID = metadataUploadResponse.data.Hash;
-      console.log('Metadata successfully uploaded.');
+      // console.log('Metadata successfully uploaded.');
 
-      console.log('Metadata CID:', metadataCID);
-      console.log('Visit metadata at:', `https://gateway.lighthouse.storage/ipfs/${metadataCID}`);
+      // console.log('Metadata CID:', metadataCID);
+      // console.log('Visit metadata at:', `https://gateway.lighthouse.storage/ipfs/${metadataCID}`);
 
       // After uploading, mint the NFT with the contract
       if(metadataCID){
@@ -281,7 +306,7 @@ const CongratulationsPopup = ({ onClose }) => {
       if (typeof window !== 'undefined' && window.tronWeb) {
         const tronWeb = window.tronWeb;
         const address=tronWeb.defaultAddress.base58;
-        console.log(address);
+        // console.log(address);
 
         // Get the contract instance
         const contract = await tronWeb.contract().at(contractAddress);
@@ -305,14 +330,18 @@ const CongratulationsPopup = ({ onClose }) => {
         if(respose.data){
             toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!',{position: 'top-center'});
         }
-        setLoading(false)
-        setShowSteps(true);
+        setLoading(false);
+        // setShowSteps(true);
+        // setIsCertified(true);
+        // setShowTransaction(true);
       } else {
         console.error('TronWeb is not available.');
         toast.error('TronWeb is not available. Please install TronLink.');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error minting NFT:', error);
+      setLoading(false);
     }
   };
 
@@ -341,7 +370,7 @@ const CongratulationsPopup = ({ onClose }) => {
           const response = await axios.get(
             'https://api.tronxplore.blockchainbytesdaily.com/api/users/users'
           )
-          console.log(response);
+          // console.log(response);
           const users = response.data
 
 
@@ -352,6 +381,7 @@ const CongratulationsPopup = ({ onClose }) => {
           if (user && user.NFT_hash) {
             setIsCertified(true)
             setNftHash(user.NFT_hash)
+            setShowTransaction(true);
           }
         } catch (error) {
           console.error('Error fetching user data:', error)
@@ -369,6 +399,15 @@ const CongratulationsPopup = ({ onClose }) => {
     fetchUserData()
   }, [])
 
+  useEffect(() => {
+    // Prevent body scrolling when the popup is open
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      // Re-enable body scrolling when the popup is closed
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   return (
     <PageWrapper>
@@ -419,55 +458,59 @@ const CongratulationsPopup = ({ onClose }) => {
           <Button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={uploadFileAndMint}
+            onClick={handleMintCertificate}
           >
             {loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Mint Certificate'}
           </Button>
         )}
-        <AnimatePresence>
-          {showTransaction && (
-            <TransactionLink
-              href={`https://nile.tronscan.org/#/transaction/${nftHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              View your NFT transaction →
-            </TransactionLink>
-          )}
-        </AnimatePresence>
-       
-        {showSteps || isCertified && (
-            <>
-             <Subtitle>How to show your NFT certificate in your wallet : </Subtitle>
-         <List>
-              <ListItem>Go to your TronLink wallet and click on the "Collectibles" section.</ListItem>
-              <ListItem>Make sure your network is set to the Nile Testnet.</ListItem>
-              <ListItem>You will see an option labeled "TXN".</ListItem>
-              <ListItem>Click on the "TXN" option to view your certificate.</ListItem>
-              <ListItem>
-                      If you don't see your certificate in the Collectibles section, look for the
-                      plus (+) icon located at the right-center of the screen.
-                    </ListItem>
-                    <ListItem>
-                      Click the plus icon and enter the contract address: 
-                      <span className='text-[#ff0000] font-semibold'>
+        {/* {showTransaction && nftHash && (
+              <AnimatePresence>
+                <TransactionLink
+                  href={`https://nile.tronscan.org/#/transaction/${nftHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  View your NFT transaction →
+                </TransactionLink>
+              </AnimatePresence>
+            )} */}
 
+
+         {(isCertified || showTransaction) && (
+              <>
+                <Subtitle>How to show your NFT certificate in your wallet:</Subtitle>
+                <List>
+                  <ListItem>Go to your TronLink wallet and click on the "Collectibles" section.</ListItem>
+                  <ListItem>Make sure your network is set to the Nile Testnet.</ListItem>
+                  <ListItem>You will see an option labeled "TXN".</ListItem>
+                  <ListItem>Click on the "TXN" option to view your certificate.</ListItem>
+                  <ListItem>
+                    If you don't see your certificate in the Collectibles section, look for the
+                    plus (+) icon located at the right-center of the screen.
+                  </ListItem>
+                  <ListItem>
+                    Click the plus icon and enter the contract address:
+                    <span className='text-[#ff0000] font-semibold'>
                       TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo
-                      </span>
-                    </ListItem>
-                    <ListItem>Select "TXN" from the list to view your certificate.</ListItem>
-                    <ListItem>
-                      Please be patient as the certificate image may take some time to load
-                      completely.
-                    </ListItem>
-        </List>
-              <HighlightedText>Note: NFTs may take some time to load into your wallet. Please check back after a few moments if your certificate doesn't appear immediately.
-              Once loaded, your TronXplore certificate should be visible in your wallet.</HighlightedText>
-        </>
-         )}
+                    </span>
+                  </ListItem>
+                  <ListItem>Select "TXN" from the list to view your certificate.</ListItem>
+                  <ListItem>
+                    Please be patient as the certificate image may take some time to load
+                    completely.
+                  </ListItem>
+                </List>
+                <HighlightedText>
+                  Note: NFTs may take some time to load into your wallet. Please check back after a few moments if your certificate doesn't appear immediately.
+                  Once loaded, your TronXplore certificate should be visible in your wallet.
+                </HighlightedText>
+              </>
+            )}
+          
+      
 
       </Wrapper>
       </ScrollableContent>

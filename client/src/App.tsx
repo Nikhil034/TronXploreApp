@@ -81,38 +81,9 @@ function AppContent() {
 
   // useEffect(() => {
   //   // Check if popup has already been shown
-  //   const popupShown = localStorage.getItem('congratulationsShown')
-  //   console.log(popupShown);
-
-
-  //   // Fetch task status from the API
-  //   const fetchTaskStatus = async () => {
-  //     try {
-  //       const username = Cookies.get('username');
-  //       console.log(username);
-  //       const response = await axios.get(
-  //         `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
-  //       )
-  //       const taskStatus = response.data
-  //       // console.log(taskStatus);
-
-
-  //       // Check if all tasks are completed
-  //       const allTasksCompleted = Object.values(taskStatus).every((status) => status === true)
-
-
-  //       // If all tasks are completed and popup hasn't been shown, show it
-  //       if (allTasksCompleted && !popupShown) {
-  //         setShowCongratulations(true)
-  //         localStorage.setItem('congratulationsShown', 'true')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching task status:', error)
-  //     }
-  //   }
-
-
-  //   fetchTaskStatus()
+  //   const LighthouseKey=import.meta.env.VITE_LIGHTHOUSE_ID;
+  //   console.log(LighthouseKey)
+  //   console.log(import.meta.env);
   // }, [])
 
 

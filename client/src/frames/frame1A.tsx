@@ -120,7 +120,7 @@ const Note = styled.div`
   font-size: 14px;
 `
 
-const ButtonAddLink = styled.a`
+const ButtonAddLink = styled.button`
   background: linear-gradient(45deg, #ff0000, #cc0000);
   color: white;
   border: none;
@@ -129,12 +129,14 @@ const ButtonAddLink = styled.a`
   font-size: 18px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: center;  
   width: fit-content;
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   text-decoration: none;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  
 
   &:hover {
     transform: translateY(-2px);
@@ -202,6 +204,21 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
   const [taskCompleted, setTaskCompleted] = useState(false)
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false) // Track task status
   const [loading, setLoading] = useState(false)
+  const [tronLinkDetected, setTronLinkDetected] = useState(false)
+
+  useEffect(() => {
+    // Check for TronLink availability every 2 seconds
+    const checkTronLinkAvailability = setInterval(() => {
+      if (window.tronWeb && window.tronWeb.ready) {
+        setTronLinkDetected(true)
+        clearInterval(checkTronLinkAvailability)
+      }
+    }, 2000)
+
+    return () => clearInterval(checkTronLinkAvailability)
+  }, [])
+
+
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -272,17 +289,35 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
         setLoading(false)
         console.error(error)
       }
-    } else {
-      console.log('TronLink wallet is not installed or not logged in.')
-      setLoading(false)
-      toast.error(
-        'TronLink wallet is not available or switch to shasta network from your wallet!',
-        {
-          position: 'top-center',
+    } 
+    else {
+      // Request TronLink to connect
+
+      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+        if (!tronLinkInstalled) {
+          toast.error('TronLink not detected. Please install TronLink wallet!', {
+            position: 'top-center',
+          })
         }
-      )
+        else
+        {
+          try {
+            await window.tronWeb.request({
+              method: 'tron_requestAccounts',
+            })
+            toast.success('TronLink connected. Please try again.', {
+              position: 'top-center',
+            })
+          } catch (error) {
+            toast.error('Failed to connect to TronLink. Please try again!', {
+              position: 'top-center',
+            })
+          }
+        }    
     }
   }
+  
 
   return (
     <>
@@ -325,7 +360,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
               anyone.
             </Note>
             <div className="w-full flex justify-center">
-              <ButtonAddLink onClick={handleTaskCompletion}>
+              <ButtonAddLink onClick={handleTaskCompletion}  disabled={isTaskCompleted}>
                 {loading ? (
                   <ScaleLoader height={15} width={4} color="white" />
                 ) : isTaskCompleted ? (

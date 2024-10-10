@@ -327,42 +327,86 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
   const HandleBalanceCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
       setLoading(true)
-      const address = (window as any).tronWeb.defaultAddress.base58
-      // console.log(address)
+      const address = window.tronWeb.defaultAddress.base58
+      
+      // Fetch the last recorded balance from your backend
       const response = await axios.get(
         `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`
       )
       setLastBalance(response.data.balance_shasta)
-      const balance = await window.tronWeb.trx.getBalance(address)
-      setRecentBalance(balance)
-      if (balance > response.data.balance_shasta) {
-        const response = await axios.patch(
-          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4',
-          {
-            address: address,
+  
+      // Function to poll the balance
+      const pollBalance = async (attempt = 1, maxAttempts = 15, delay = 2000) => {
+        try {
+          const currentBalance = await window.tronWeb.trx.getBalance(address)
+          setRecentBalance(currentBalance)
+          
+          if (currentBalance > response.data.balance_shasta) {
+            // If balance has increased, update the backend and complete the task
+            const patchResponse = await axios.patch(
+              'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4',
+              { address: address }
+            )
+  
+            toast.success('Congratulations on completing your task! 🎉', {
+              position: 'top-center',
+            })
+            setIsValid(true)
+            setIsTaskCompleted(true)
+            updateTaskStatus('is_get_trx_task4')
+            setLoading(false)
+            return true
+          } else if (attempt < maxAttempts) {
+            // If balance hasn't increased, wait and try again
+            setTimeout(() => {
+              pollBalance(attempt + 1, maxAttempts, delay * 1.5) // Exponential backoff
+            }, delay)
+          } else {
+            toast.error('Your balance is still equal or not greater than your last recorded balance!', {
+              position: 'top-center',
+            })
+            setLoading(false)
           }
-        )
-        // console.log("Response:",response.data);
-        toast.success('Congratulations on completing your task! 🎉', {
-          position: 'top-center',
-        })
-        setIsValid(true)
-        setLoading(false)
-        updateTaskStatus('is_get_trx_task4')
-      } else {
-        toast.error('Stil balance is equal or not greater then your recorded last balance !', {
-          position: 'top-center',
-        })
-        setLoading(false)
+        } catch (error) {
+          console.error('Error fetching balance:', error)
+          setLoading(false)
+          toast.error('Failed to fetch the balance. Please try again!', {
+            position: 'top-center',
+          })
+        }
       }
+  
+      // Start polling the balance
+      pollBalance()
       setShow(true)
-    } else {
-      toast.error('TronLink wallet is not installed or not logged in.', {
-        position: 'top-center',
-      })
-      setLoading(false)
+    } 
+    else {
+      // Request TronLink to connect
+      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+        if (!tronLinkInstalled) {
+          toast.error('TronLink not detected. Please install TronLink wallet!', {
+            position: 'top-center',
+          })
+        }
+        else
+        {
+          try {
+            await window.tronWeb.request({
+              method: 'tron_requestAccounts',
+            })
+            toast.success('TronLink connected. Please try again.', {
+              position: 'top-center',
+            })
+          } catch (error) {
+            toast.error('Failed to connect to TronLink. Please try again!', {
+              position: 'top-center',
+            })
+          }
+        }    
     }
   }
+  
 
   return (
     <>

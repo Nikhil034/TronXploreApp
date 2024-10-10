@@ -367,17 +367,40 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           setAmount('')
           setIsValid(true)
           updateTaskStatus('is_send_trx_task5')
+          setIsTaskCompleted(true);
         } else {
           toast.error('Transaction Failed!', {
             position: 'top-center',
           })
           setLoading(false)
         }
-      } else {
-        toast.error('TronLink wallet is not installed or not logged in.', {
-          position: 'top-center',
-        })
-        setLoading(false)
+      }  else {
+        // Request TronLink to connect
+        const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+    
+          if (!tronLinkInstalled) {
+            toast.error('TronLink not detected. Please install TronLink wallet!', {
+              position: 'top-center',
+            })
+            setLoading(false);
+          }
+          else
+          {
+            try {
+              await window.tronWeb.request({
+                method: 'tron_requestAccounts',
+              })
+              toast.success('TronLink connected. Please try again.', {
+                position: 'top-center',
+              })
+              setLoading(false);
+            } catch (error) {
+              toast.error('Failed to connect to TronLink. Please try again!', {
+                position: 'top-center',
+              })
+              setLoading(false);
+            }
+          }    
       }
     } catch (error) {
       console.error('Error: ', error)

@@ -291,8 +291,10 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   const [txhash, Settxhash] = useState('')
   const [txhashlink, SettxhashLink] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingtrx,setLoadingtrx]=useState(false);
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [isValid, setIsValid] = useState(false)
+  const [isdissable,setDisablemint]=useState(false);
 
   useEffect(() => {
     // Check if the task is already completed when component mounts
@@ -349,7 +351,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
     }
 
     try {
-      setLoading(true)
+      setLoadingtrx(true)
       const userAddress = window.tronWeb.defaultAddress.base58
       Setaddress(userAddress)
       const FACTORY_ADDRESS = 'TD25qAECSNdpcTDFhDj3Ffa6hf1sZUstJL'
@@ -389,6 +391,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
 
           setContractAddress(newTokenAddress)
           setIsTokenMinted(true)
+          setDisablemint(true);
 
           toast.success(
             <div>
@@ -413,7 +416,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
             </div>
           )
           setIsTokenMinted(true)
-          setLoading(false)
+          setLoadingtrx(false)
+          setDisablemint(true)
         }
       } else {
         toast.success(
@@ -426,7 +430,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
           </div>
         )
         setIsTokenMinted(true)
-        setLoading(false)
+        setLoadingtrx(false)
+        setDisablemint(true);
       }
     } catch (error) {
       console.error('Error during minting:', error)
@@ -444,7 +449,13 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
   }
 
   const handleVerifyToken = async () => {
-    setLoading(true)
+
+    if(!trc20_adddress){
+      toast.error('Please enter your token address!',{position:'top-center'});
+      return;
+    }
+
+    setLoading(false)
     const getdetails = await axios.get(
       `https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20_adddress}`
     )
@@ -467,6 +478,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
     if (response.data) {
       setLoading(false)
       setIsTokenVerified(true)
+      setIsTaskCompleted(true);
     }
   }
 
@@ -557,8 +569,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
             </HighlightedText>
 
             <ButtonGroup>
-              <Button onClick={handleMint} disabled={isTaskCompleted}>
-                {loading ? (
+              <Button onClick={handleMint} disabled={isTaskCompleted || isdissable}>
+                {loadingtrx ? (
                   <ScaleLoader height={15} width={4} color="white" />
                 ) : isTaskCompleted ? (
                   'Task Completed'
@@ -585,8 +597,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                 <Label>Steps : </Label>
                 <InstructionsList>
                   <InstructionItem>
-                    Copy the contract address view from click on view transaction show event log and
-                    copy address.
+                  Go to the verification page,locate the event log section, and copy the contract address from there.
                   </InstructionItem>
                   <InstructionItem>Open your TronLink wallet.</InstructionItem>
                   <InstructionItem>
@@ -598,7 +609,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                   </InstructionItem>
                 </InstructionsList>
                 <ButtonGroup>
-                  <Button onClick={handleVerifyToken}>
+                  <Button onClick={handleVerifyToken} disabled={isTaskCompleted}>
                     {' '}
                     {loading ? <ScaleLoader height={15} width={4} color="white" /> : 'Verify Token'}
                   </Button>

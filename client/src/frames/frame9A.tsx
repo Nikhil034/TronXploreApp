@@ -261,6 +261,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const [verificationHash, setVerificationHash] = useState('')
   const [isTaskCompleted, setIsTaskCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
+  const [loadingverify,setLoadingverify]=useState(false);
   const [isValid,setIsValid]=useState(false);
 
   useEffect(() => {
@@ -344,8 +345,8 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         // const tokenAmount = window.tronWeb.toBigNumber(amount * 10 ** tokenDecimals)
         const tokenDecimals = 18; // Adjust if your token has a different number of decimals
         const tokenAmount = window.tronWeb.toBigNumber(amount * (10 ** tokenDecimals));
-        console.log(tokenAmount)
-        console.log(amount)
+        // console.log(tokenAmount)
+        // console.log(amount)
 
         // Send the transaction
         const transaction = await contract.transfer(recipient, tokenAmount.toString()).send()
@@ -367,11 +368,34 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         })
         setLoading(false)
       }
-    } else {
-      toast.error('TronLink wallet is not installed or not logged in.', {
-        position: 'top-center',
-      })
-      setLoading(false)
+    } 
+    else {
+      // Request TronLink to connect
+      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+        if (!tronLinkInstalled) {
+          toast.error('TronLink not detected. Please install TronLink wallet!', {
+            position: 'top-center',
+          })
+          setLoading(false);
+        }
+        else
+        {
+          try {
+            await window.tronWeb.request({
+              method: 'tron_requestAccounts',
+            })
+            toast.success('TronLink connected. Please try again.', {
+              position: 'top-center',
+            })
+            setLoading(false);
+          } catch (error) {
+            toast.error('Failed to connect to TronLink. Please try again!', {
+              position: 'top-center',
+            })
+            setLoading(false);
+          }
+        }    
     }
   }
 
@@ -379,62 +403,71 @@ export default function SendTRX({ onBack }: SendTRXProps) {
     navigator.clipboard.writeText(verificationUrl)
     alert('Verification URL copied to clipboard!')
   }
-
   const handleVerify = async () => {
     try {
-      // Get transaction info
-      if (window.tronWeb && window.tronWeb.ready) {
-        setLoading(true)
-        const txInfo = await window.tronWeb.trx.getTransaction(txnHash)
-        let energyUsage = ''
-
-        // Extract ref_block_number from raw_data
-        const refBlockNumber = parseInt(txInfo.raw_data.ref_block_bytes, 16)
-
-        // console.log(`Reference Block Number: ${refBlockNumber}`);
-
-        // Get detailed transaction info
-        const txInfoDetails = await window.tronWeb.trx.getTransactionInfo(txnHash)
-        if (!txInfoDetails) {
-          toast.error('Transaction details not available yet. Please try again in a few moments.');
-          return;
+      if (!window.tronWeb || !window.tronWeb.ready) {
+        toast.error('TronWeb is not ready. Please make sure you are connected to the Tron network.');
+        return;
+      }
+  
+      setLoadingverify(true);
+  
+      // Function to wait for transaction confirmation
+      const waitForConfirmation = async (hash, maxAttempts = 20, delay = 3000) => {
+        // console.log(maxAttempts);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const txInfoDetails = await window.tronWeb.trx.getTransactionInfo(hash);
+          if (txInfoDetails && txInfoDetails.blockNumber) {
+            return txInfoDetails;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
+        throw new Error('Transaction not confirmed after maximum attempts');
+      };
+  
+      // Wait for transaction confirmation
+      const txInfoDetails = await waitForConfirmation(txnHash);
+  
+      // Extract block number and bandwidth usage
+      const blockNumber = txInfoDetails.blockNumber;
+      let bandwidthUsage = 0;
+  
+      if (txInfoDetails.receipt) {
+        bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee || 0;
+      }
+  
+      // Round bandwidth usage to the nearest integer
+      // bandwidthUsage = Math.round(bandwidthUsage);
+      const bandwidthPoints = Math.round(bandwidthUsage / 1000);
+  
+      // Log the results
+      // console.log(`Block Number: ${blockNumber}`);
+      // console.log(`Bandwidth Usage: ${bandwidthPoints}`);
 
-        // Extract actual block number and bandwidth usage
-        const blockNumber = txInfoDetails.blockNumber
-        let bandwidthUsage = 0;
 
-        if (txInfoDetails.receipt) {
-          bandwidthUsage = txInfoDetails.receipt.net_usage || txInfoDetails.receipt.net_fee || 0;
-          energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee || 0;
-        }
-    
-
-        // console.log(`Actual Block Number: ${blockNumber}`);
-        // console.log(`Bandwidth Usage: ${bandwidthUsage}`);
-
-        // If energy was used instead of bandwidth
-        // if (txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee) {
-        //   energyUsage = txInfoDetails.receipt.energy_usage || txInfoDetails.receipt.energy_fee
-        //   // console.log(`Energy Usage: ${energyUsage}`);
-        // }
-
+      if(blockNumber && bandwidthUsage){
+        // Send the data to your API
         const response = await axios.patch(
-          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task9 ',
-          { address: address, txhash: txnHash, blockno: blockNumber, bandwidth: bandwidthUsage }
-        )
+        'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task9',
+        { address: address, txhash: txnHash, blockno: blockNumber, bandwidth: bandwidthPoints }
+      );
+      
+      if(response.data){
         toast.success('Congratulations on completing your task! 🎉', {
           position: 'top-center',
-        })
-        setLoading(false)
+        });
+        setLoadingverify(false);
         updateTaskStatus('is_trc20_send_task9');
+        setIsTaskCompleted(true);
       }
+      }
+      
     } catch (error) {
-      console.error('Error:', error)
-      setLoading(false)
+      console.error('Error:', error);
+      toast.error(`Verification failed: ${error}`);
+      setLoading(false);
     }
-  }
-
+  };
   return (
     <>
       <GlobalStyle />
@@ -539,7 +572,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
 
                 <ButtonContainer>
                   <Button onClick={handleVerify}>
-                    {loading ? (
+                    {loadingverify ? (
                       <ScaleLoader height={15} width={4} color="white" />
                     ) : (
                       'Verify Transaction'

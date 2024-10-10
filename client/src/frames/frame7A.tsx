@@ -383,6 +383,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
         setIsValid(true)
         setLoading(false)
         updateTaskStatus('is_get_energy_task7')
+        setIsTaskCompleted(true);
       } else {
         console.error('Transaction failed:', txnReceipt)
         setError('Transaction failed. Please check the console for details and try again.')

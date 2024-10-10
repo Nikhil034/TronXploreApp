@@ -465,7 +465,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
       await new Promise((resolve) => setTimeout(resolve, 5000))
 
       const transactionInfo = await tronWeb.trx.getTransactionInfo(transactionHash)
-      console.log(transactionInfo) // Log full transaction info for debugging
+      // console.log(transactionInfo) // Log full transaction info for debugging
 
       if (!transactionInfo) {
         throw new Error('Transaction info not found')
@@ -476,7 +476,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
 
       console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
 
-      if (bandwidth && energyUsed) {
+      if (bandwidth || energyUsed) {
         return { bandwidth, energyUsed }
       }
       return undefined
@@ -521,10 +521,14 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
       try {
         setLoading(true)
         const transactionResult = await fetchTransactionUsage(transactionHash)
+        // console.log(transactionResult);
         if (transactionResult) {
           const { bandwidth, energyUsed } = transactionResult
-          console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
+          setResources({bandwidth:bandwidth,energy:energyUsed});
+          // console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
         } else {
+          toast.error('Failed to fetch transaction usage,Please try again!');
+          setLoading(false);
           console.log('Failed to fetch transaction usage.')
         }
         setUniqueHashes((prev) => new Set(prev).add(transactionHash))
@@ -539,10 +543,32 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
         setLoading(false)
       }
     } else {
-      toast.error('TronLink wallet is not installed or not logged in.', {
-        position: 'top-center',
-      })
-      setLoading(false)
+      // Request TronLink to connect
+      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+        if (!tronLinkInstalled) {
+          toast.error('TronLink not detected. Please install TronLink wallet!', {
+            position: 'top-center',
+          })
+          setLoading(false);
+        }
+        else
+        {
+          try {
+            await window.tronWeb.request({
+              method: 'tron_requestAccounts',
+            })
+            toast.success('TronLink connected. Please try again.', {
+              position: 'top-center',
+            })
+            setLoading(false);
+          } catch (error) {
+            toast.error('Failed to connect to TronLink. Please try again!', {
+              position: 'top-center',
+            })
+            setLoading(false);
+          }
+        }    
     }
   }
 
@@ -562,6 +588,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
       setIsValid(true)
       setLoading(false)
       updateTaskStatus('is_check_bandwidth_task6')
+      setIsTaskCompleted(true);
     } catch (error: any) {
       toast.error(`Failed to complete the task: ${error.message}`, {
         position: 'top-center',

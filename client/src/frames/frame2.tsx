@@ -194,9 +194,11 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
   useEffect(() => {
     // Check if the task is already completed when component mounts
     const taskStatus = JSON.parse(localStorage.getItem('tasks_status') || '{}')
-    if (taskStatus['is_connect_wallet_task2']) {
-      setTaskCompleted(true)
-    }
+    // if (taskStatus['is_connect_wallet_task2']) {
+    //   setTaskCompleted(true)
+    const connectedAddress = window.tronWeb.defaultAddress.base58
+        setWalletAddress(connectedAddress)
+    // }
   }, [])
 
   const updateTaskStatus = (taskKey: string) => {
@@ -257,10 +259,31 @@ const TronLinkWalletConnection: React.FC<TronLinkWalletConnectionProps> = ({ onB
         updateTaskStatus('is_connect_wallet_task2');
         setIsTaskCompleted(true)
         setIsValid(true)
-      } else {
-        toast.error('Failed to connect. Please try again!', {
-          position: 'top-center',
-        })
+      } 
+      else {
+        // Request TronLink to connect
+        const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+    
+          if (!tronLinkInstalled) {
+            toast.error('TronLink not detected. Please install TronLink wallet!', {
+              position: 'top-center',
+            })
+          }
+          else
+          {
+            try {
+              await window.tronWeb.request({
+                method: 'tron_requestAccounts',
+              })
+              toast.success('TronLink connected. Please try again.', {
+                position: 'top-center',
+              })
+            } catch (error) {
+              toast.error('Failed to connect to TronLink. Please try again!', {
+                position: 'top-center',
+              })
+            }
+          }    
       }
     } catch (error) {
       toast.error(
