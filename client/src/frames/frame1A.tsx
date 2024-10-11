@@ -260,21 +260,19 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
   }
   const handleTaskCompletion = async () => {
     const username = Cookies.get('username');
-    setLoading(true);
   
     const checkTronLink = () => {
       return new Promise((resolve) => {
         if (window.tronWeb && window.tronWeb.ready) {
           resolve(true);
         } else {
-          // If TronLink is not detected or not ready, we'll wait for a short time and check again
           setTimeout(() => {
             if (window.tronWeb && window.tronWeb.ready) {
               resolve(true);
             } else {
               resolve(false);
             }
-          }, 2000); // Wait for 2 seconds before rechecking
+          }, 2000);
         }
       });
     };
@@ -283,60 +281,47 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
       const tronLinkDetected = await checkTronLink();
   
       if (tronLinkDetected) {
+        setLoading(true);
         try {
-          // Request account access
           await window.tronWeb.request({ method: 'tron_requestAccounts' });
           
-          // Double-check if TronWeb is still ready after requesting access
           if (window.tronWeb && window.tronWeb.ready) {
-            try {
-              const response = await axios.patch(
-                'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
-                { username: username }
-              );
+            const response = await axios.patch(
+              'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
+              { username: username }
+            );
   
-              updateTaskStatus('is_create_wallet_task1');
-              toast.success('Congratulations on completing your task! 🎉', {
-                position: 'top-center',
-              });
-              setIsTaskCompleted(true);
-            } catch (error) {
-              toast.error('Failed to complete task. Please try again.', {
-                position: 'top-center',
-              });
-              console.error('API Error:', error);
-            }
+            updateTaskStatus('is_create_wallet_task1');
+            toast.success('Congratulations on completing your task! 🎉',{position:'top-center'});
+            setIsTaskCompleted(true);
           } else {
             throw new Error('TronLink became unavailable');
           }
         } catch (error:any) {
           if (error.message === 'TronLink became unavailable') {
-            toast.error('TronLink became unavailable. Please check if it\'s enabled and try again.', {
-              position: 'top-center',
-            });
+            alert('TronLink became unavailable. Please check if it\'s enabled and try again.');
           } else {
-            toast.error('Failed to connect to TronLink. Please try again!', {
-              position: 'top-center',
-            });
+            alert('Failed to connect to TronLink. Please try again!');
           }
           console.error('TronLink Error:', error);
         }
       } else {
-        toast.error('TronLink not detected or not ready. Please install TronLink wallet, ensure it\'s enabled, and refresh the page!', {
-          position: 'top-center',
-        });
-        // Offer a button to reload the page
-        if (confirm('TronLink not detected or need to unlock. please reload the page to check again?')) {
-          window.location.reload();
+        setLoading(false);
+        if (confirm('TronLink not detected or not need to unlock. Click OK to reload the page and check again.')) {
+          // Use setTimeout to ensure the confirmation dialog closes before reloading
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         }
-
-        
       }
     } catch (error) {
       console.error('Unexpected error:', error);
-      toast.error('An unexpected error occurred. Please refresh the page and try again.', {
-        position: 'top-center',
-      });
+      setLoading(false);
+      toast.error('An unexpected error occurred. The page will refresh to try again.',{position:'top-center'});
+      // Use setTimeout to ensure the alert closes before reloading
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } finally {
       setLoading(false);
     }
