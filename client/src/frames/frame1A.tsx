@@ -249,7 +249,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
 
   const getTaskStatus = (): Record<string, boolean> => {
     const taskStatus = localStorage.getItem('tasks_status')
-    console.log(taskStatus)
+    // console.log(taskStatus)
     return taskStatus ? JSON.parse(taskStatus) : {}
   }
 
@@ -258,67 +258,89 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
     taskStatus[taskKey] = true
     localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
   }
-
   const handleTaskCompletion = async () => {
-    if (window.tronWeb && window.tronWeb.ready) {
-      // console.log('TronLink wallet is available and ready.')
-      const username = Cookies.get('username')
-      setLoading(true)
-      try {
-        const response = await axios.patch(
-          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
-          {
-            username: username,
-          }
-        )
-        // console.log(response)
-
-        // Update localStorage
-        updateTaskStatus('is_create_wallet_task1')
-
-        toast.success('Congratulations on completing your task! 🎉', {
-          position: 'top-center',
-        })
-        setLoading(false)
-        // console.log(response.data)
-        setIsTaskCompleted(true) // Show "Continue Your Journey" button
-      } catch (error) {
-        toast.error('Failed to complete task. Please try again.', {
-          position: 'top-center',
-        })
-        setLoading(false)
-        console.error(error)
-      }
-    } 
-    else {
-      // Request TronLink to connect
-
-      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+    const username = Cookies.get('username');
+    setLoading(true);
   
-        if (!tronLinkInstalled) {
-          toast.error('TronLink not detected. Please install TronLink wallet!', {
-            position: 'top-center',
-          })
+    const checkTronLink = () => {
+      return new Promise((resolve) => {
+        if (window.tronWeb && window.tronWeb.ready) {
+          resolve(true);
+        } else {
+          // If TronLink is not detected or not ready, we'll wait for a short time and check again
+          setTimeout(() => {
+            if (window.tronWeb && window.tronWeb.ready) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          }, 2000); // Wait for 2 seconds before rechecking
         }
-        else
-        {
-          try {
-            await window.tronWeb.request({
-              method: 'tron_requestAccounts',
-            })
-            toast.success('TronLink connected. Please try again.', {
+      });
+    };
+  
+    try {
+      const tronLinkDetected = await checkTronLink();
+  
+      if (tronLinkDetected) {
+        try {
+          // Request account access
+          await window.tronWeb.request({ method: 'tron_requestAccounts' });
+          
+          // Double-check if TronWeb is still ready after requesting access
+          if (window.tronWeb && window.tronWeb.ready) {
+            try {
+              const response = await axios.patch(
+                'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
+                { username: username }
+              );
+  
+              updateTaskStatus('is_create_wallet_task1');
+              toast.success('Congratulations on completing your task! 🎉', {
+                position: 'top-center',
+              });
+              setIsTaskCompleted(true);
+            } catch (error) {
+              toast.error('Failed to complete task. Please try again.', {
+                position: 'top-center',
+              });
+              console.error('API Error:', error);
+            }
+          } else {
+            throw new Error('TronLink became unavailable');
+          }
+        } catch (error:any) {
+          if (error.message === 'TronLink became unavailable') {
+            toast.error('TronLink became unavailable. Please check if it\'s enabled and try again.', {
               position: 'top-center',
-            })
-          } catch (error) {
+            });
+          } else {
             toast.error('Failed to connect to TronLink. Please try again!', {
               position: 'top-center',
-            })
+            });
           }
-        }    
-    }
-  }
-  
+          console.error('TronLink Error:', error);
+        }
+      } else {
+        toast.error('TronLink not detected or not ready. Please install TronLink wallet, ensure it\'s enabled, and refresh the page!', {
+          position: 'top-center',
+        });
+        // Offer a button to reload the page
+        if (confirm('TronLink not detected or need to unlock. please reload the page to check again?')) {
+          window.location.reload();
+        }
 
+        
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred. Please refresh the page and try again.', {
+        position: 'top-center',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <GlobalStyle />

@@ -111,7 +111,7 @@ const Input = styled.input`
 
 const HighlightedText = styled.p`
   margin-bottom: 15px;
-  margin-top: 15 px;
+  margin-top: 30px;
   background-color: rgb(82 79 79 / 80%);
   padding: 20px;
   border-left: 4px solid #cc0000;
@@ -580,16 +580,9 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               </Button>
             </ButtonGroup>
 
-            {isTokenMinted && (
-              <>
-                <ContractAddressBox>
-                  <Input
-                    type="text"
-                    placeholder="Enter Event log address here..."
-                    value={trc20_adddress}
-                    onChange={(e) => setTrc20address(e.target.value)}
-                  />
-                </ContractAddressBox>
+            {/* {isTokenMinted && (
+              <> */}
+                
                 <HighlightedText>
                   Great! Your TRC-20 token has been minted. Follow these steps to add it to your
                   TronLink wallet:
@@ -597,7 +590,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                 <Label>Steps : </Label>
                 <InstructionsList>
                   <InstructionItem>
-                  Go to the verification page,locate the event log section, and copy the contract address from there.
+                  Click the "View Transaction" button, navigate to the "Event Log" section, and copy the contract address. Paste the address into the input box below to verify your token.
                   </InstructionItem>
                   <InstructionItem>Open your TronLink wallet.</InstructionItem>
                   <InstructionItem>
@@ -608,6 +601,14 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                     Paste the copied contract address into the designated field.
                   </InstructionItem>
                 </InstructionsList>
+                <ContractAddressBox>
+                  <Input
+                    type="text"
+                    placeholder="Enter Event log address here..."
+                    value={trc20_adddress}
+                    onChange={(e) => setTrc20address(e.target.value)}
+                  />
+                </ContractAddressBox>
                 <ButtonGroup>
                   <Button onClick={handleVerifyToken} disabled={isTaskCompleted}>
                     {' '}
@@ -617,8 +618,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                     <Button>View Transaction</Button>
                   </a>
                 </ButtonGroup>
-              </>
-            )}
+              {/* </>
+            )} */}
 
             {isTokenVerified && (
               <ButtonGroup>

@@ -357,7 +357,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         // console.log(txnHash);
         setTxnHash(txnHash)
         setShowVerificationSteps(true)
-        toast.success(`Transaction sent successfully!}`, {
+        toast.success(`Transaction sent successfully!`, {
           position: 'top-center',
         })
         setLoading(false)
@@ -578,7 +578,9 @@ export default function SendTRX({ onBack }: SendTRXProps) {
                       'Verify Transaction'
                     )}
                   </Button>
-                  <ButtonCont onClick={() => navigate('/')}>Continue Your Journey</ButtonCont>
+                  <ButtonCont onClick={() => navigate('/')} disabled={isTaskCompleted}>
+                  {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
+                  </ButtonCont>
                 </ButtonContainer>
               </>
             )}

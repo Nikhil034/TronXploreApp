@@ -122,6 +122,7 @@ const List = styled.ol`
 `
 const ButtonGroup = styled.div`
   display: flex;
+  flex-direction:column;
   margin-top: 30px;
   gap: 10px;
 `
@@ -220,6 +221,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 10px 5px;
+  width: fit-content;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
   &:hover {
@@ -272,6 +274,26 @@ const BackButton = styled.button`
     background-color: #b91c1c;
   }
 `
+
+const LoadingMessage = styled.p`
+  font-style: italic;
+  color: #cccccc;
+  margin-top: 10px;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.6;
+    }
+  }
+`;
 
 interface GettingTRXProps {
   onBack: () => void
@@ -454,27 +476,35 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
             </List>
 
             <ButtonGroup>
-              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
                 {loading ? (
+                  <>
+              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
                   <ScaleLoader height={15} width={4} color="white" />
-                ) : isTaskCompleted ? (
-                  'Task Completed'
+                  </Button>
+                  <LoadingMessage>
+                  Please wait while we fetch your updated balance. This may take a few moments...
+                </LoadingMessage>
+                </>
                 ) : (
-                  'Check Balance'
+                  <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
+                  {isTaskCompleted ? 'Task Completed':'Check Balance'}
+                  </Button>
                 )}
-              </Button>
+              
               <ButtonCont disabled={!isValid} onClick={onBack}>
                 {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
-            {Isshow && (
+            {/* {recent_balance === null && ( */}
+              
+             {/* )} */}
+            {!loading && Isshow && (
               <div className="mt-10 ">
                 <h1>Last Balance (TRX) : {last_balance}</h1>
-                <h1>Now Balance (TRX) : {recent_balance}</h1>
+                <h1>Now Balance (TRX) : {recent_balance !== null ? recent_balance : 'Updating...'}</h1>
                 <br />
                 <p>
-                  Note :- In order to complete this task your balance should be greater then last
-                  sign message time balance
+                  Note: In order to complete this task, your balance should be greater than your last recorded balance.
                 </p>
               </div>
             )}

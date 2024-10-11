@@ -76,7 +76,7 @@ export default class MyPlayer extends Player {
       {
         x: 549,
         y: 561,
-        message: 'Your are reaching your first',
+        message: 'Your are reaching your first task',
         shown: false,
         button: 'Task 1',
         taskKey: 'is_create_wallet_task1',
