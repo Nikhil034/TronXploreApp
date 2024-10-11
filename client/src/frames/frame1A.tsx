@@ -249,7 +249,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
 
   const getTaskStatus = (): Record<string, boolean> => {
     const taskStatus = localStorage.getItem('tasks_status')
-    // console.log(taskStatus)
+    console.log(taskStatus)
     return taskStatus ? JSON.parse(taskStatus) : {}
   }
 
@@ -258,74 +258,64 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
     taskStatus[taskKey] = true
     localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
   }
+
   const handleTaskCompletion = async () => {
     const username = Cookies.get('username');
+
   
-    const checkTronLink = () => {
-      return new Promise((resolve) => {
-        if (window.tronWeb && window.tronWeb.ready) {
-          resolve(true);
-        } else {
-          setTimeout(() => {
-            if (window.tronWeb && window.tronWeb.ready) {
-              resolve(true);
-            } else {
-              resolve(false);
-            }
-          }, 2000);
-        }
-      });
-    };
-  
-    try {
-      const tronLinkDetected = await checkTronLink();
-  
-      if (tronLinkDetected) {
+    // Check if TronLink is installed
+    if (window.tronWeb) {
+      try {
+        // Always request account access
         setLoading(true);
-        try {
-          await window.tronWeb.request({ method: 'tron_requestAccounts' });
-          
-          if (window.tronWeb && window.tronWeb.ready) {
+        await window.tronWeb.request({ method: 'tron_requestAccounts' });
+        
+        // Check if TronWeb is ready after requesting access
+        if (window.tronWeb.ready) {
+          try {
             const response = await axios.patch(
               'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
               { username: username }
             );
   
             updateTaskStatus('is_create_wallet_task1');
-            toast.success('Congratulations on completing your task! 🎉',{position:'top-center'});
+            toast.success('Congratulations on completing your task! 🎉', {
+              position: 'top-center',
+            });
             setIsTaskCompleted(true);
-          } else {
-            throw new Error('TronLink became unavailable');
+            setLoading(false);
+          } catch (error) {
+            toast.error('Failed to complete task. Please try again.', {
+              position: 'top-center',
+            });
+            setLoading(false);
+            console.error(error);
           }
-        } catch (error:any) {
-          if (error.message === 'TronLink became unavailable') {
-            alert('TronLink became unavailable. Please check if it\'s enabled and try again.');
-          } else {
-            alert('Failed to connect to TronLink. Please try again!');
-          }
-          console.error('TronLink Error:', error);
+        } else {
+          toast.error('TronLink is not ready. Please unlock your wallet and try again or come back again', {
+            position: 'top-center',
+          });
+          setLoading(false);
+
         }
-      } else {
+      } catch (error) {
+        toast.error('Failed to connect to TronLink. Please try again!', {
+          position: 'top-center',
+        });
         setLoading(false);
-        if (confirm('TronLink not detected or not need to unlock. Click OK to reload the page and check again.')) {
-          // Use setTimeout to ensure the confirmation dialog closes before reloading
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
-        }
+        console.error(error);
       }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setLoading(false);
-      toast.error('An unexpected error occurred. The page will refresh to try again.',{position:'top-center'});
-      // Use setTimeout to ensure the alert closes before reloading
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    } finally {
+    } else {
+      console.log('hello')
+      toast.error('TronLink not detected. Please install TronLink wallet!', {
+        position: 'top-center',
+      });
       setLoading(false);
     }
+  
+    setLoading(false);
   };
+
   return (
     <>
       <GlobalStyle />
