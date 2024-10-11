@@ -62,10 +62,22 @@ const Container = styled.div`
   margin: auto;
 `;
 
+const Divider = styled.hr`
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0) 0%,
+    rgba(255, 0, 0, 0.3) 50%,
+    rgba(255, 0, 0, 0) 100%
+  );
+  margin: 40px 0;
+`
 const Title = styled.h2`
   font-family: "Orbitron", sans-serif;
   font-weight: 700;
-  margin-top: 0;
+  // margin-top: 20px;
+  margin-bottom:20px;
   font-size: 32px;
   text-shadow: 2px 2px 4px rgba(255, 51, 51, 0.3),
     0 0 10px rgba(255, 51, 51, 0.2);
@@ -146,6 +158,58 @@ const BackButton = styled.button`
   }
 `;
 
+const OrderedList = styled.ol`
+padding-left: 0;
+counter-reset: item;
+list-style-type: none;
+`
+
+const ListItem = styled.li`
+margin-bottom: 20px;
+position: relative;
+padding-left: 50px;
+font-size: 16px;
+
+&::before {
+  content: counter(item);
+  counter-increment: item;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ff0000;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
+}
+`
+
+const Link = styled.a`
+color: #ff6666;
+text-decoration: none;
+position: relative;
+transition: color 0.3s ease;
+
+&:hover {
+  color: #ff9999;
+}
+`
+
+const Note = styled.div`
+background-color: rgba(82, 79, 79, 0.8);
+padding: 20px;
+border-left: 4px solid #ff0000;
+margin: 30px 0;
+border-radius: 0 10px 10px 0;
+font-size: 14px;
+`
+
 interface TronLinkWalletTerminologyProps {
   onBack: () => void;
 }
@@ -183,8 +247,43 @@ export default function TronLinkWalletTerminology({
             We are creating a gamified learning platform that provides an interactive way for users to learn about the Tron blockchain. Through various stages and tasks, you'll explore Tron's core features, its use cases, and gain valuable knowledge of how to use the Tron ecosystem effectively.
             </Paragraph>
 
+            <Divider/>
+
+            <Title>HOW TO CREATE A TRONLINK ACCOUNT</Title>
+            <OrderedList>
+              <ListItem>
+                Visit the official TronLink wallet page:{' '}
+                <Link href="https://www.tronlink.org/" target="_blank">
+                  TronLink
+                </Link>
+              </ListItem>
+              <ListItem>
+                Click on{' '}
+                <Link
+                  href="https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec"
+                  target="_blank"
+                >
+                  Add TronLink Extension
+                </Link>{' '}
+                to add the TronLink extension to your browser.
+              </ListItem>
+              <ListItem>Click on 'Add to Chrome' to install the TronLink extension.</ListItem>
+              <ListItem>
+                Once installed, click on the TronLink icon in your browser toolbar.
+              </ListItem>
+              <ListItem>
+                Click on 'Create Account' and follow the steps to set up your new account, including
+                backing up your private key.
+              </ListItem>
+              <ListItem>You're now ready to use TronLink with the Tron blockchain!</ListItem>
+            </OrderedList>
+            <Note>
+              <strong>Note:</strong> Always keep your private key secure and never share it with
+              anyone.
+            </Note>
+
             <ButtonGroup>
-              <Button onClick={()=>navigate('/task1_continue')}>Let's do Activity</Button>
+              <Button onClick={()=>navigate('/task1_continue')}>Let's Check Wallet</Button>
             </ButtonGroup>
           </Container>
         </ScrollableContent>

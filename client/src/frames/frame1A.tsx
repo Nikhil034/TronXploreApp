@@ -5,6 +5,8 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 import toast, { Toaster } from 'react-hot-toast'
 import { ScaleLoader } from 'react-spinners'
+import extension from '../images/extension.png'
+import wallet from '../images/wallet.png'
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -57,67 +59,30 @@ const Container = styled.div`
   margin: auto;
 `
 
-const Title = styled.h2`
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  margin-top: 0;
-  font-size: 32px;
-  text-shadow: 2px 2px 4px rgba(255, 51, 51, 0.3), 0 0 10px rgba(255, 51, 51, 0.2);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 30px;
+const GuideContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 `
 
-const OrderedList = styled.ol`
-  padding-left: 0;
-  counter-reset: item;
-  list-style-type: none;
+const GuideImage = styled.img`
+  max-width: 100%;
+  height: auto;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
 `
 
-const ListItem = styled.li`
-  margin-bottom: 20px;
-  position: relative;
-  padding-left: 50px;
+const GuideText = styled.p`
   font-size: 16px;
-
-  &::before {
-    content: counter(item);
-    counter-increment: item;
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #ff0000;
-    color: #fff;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-family: 'Orbitron', sans-serif;
-  }
+  line-height: 1.6;
+  margin-bottom: 20px;
 `
 
-const Link = styled.a`
-  color: #ff6666;
-  text-decoration: none;
-  position: relative;
-  transition: color 0.3s ease;
-
-  &:hover {
-    color: #ff9999;
-  }
-`
-
-const Note = styled.div`
-  background-color: rgba(82, 79, 79, 0.8);
-  padding: 20px;
-  border-left: 4px solid #ff0000;
-  margin: 30px 0;
-  border-radius: 0 10px 10px 0;
-  font-size: 14px;
+const ButtonGroup = styled.div`
+  display:flex;
+  gap:10px;
 `
 
 const ButtonAddLink = styled.button`
@@ -143,6 +108,95 @@ const ButtonAddLink = styled.button`
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
   }
 `
+
+const ButtonReload = styled(ButtonAddLink)`
+    &::after {
+    content:"Wallet not detected. Please refresh the page and try again.";
+    position: absolute;
+    bottom: 100%; // Adjust as needed for the tooltip placement
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 60, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: block;
+    opacity: 0; // Start with opacity 0
+    transition: opacity 0.2s ease; // Smooth transition for opacity
+  }
+
+  &:hover::after {
+    display: block;// Show only when disabled
+    opacity: 0.8;// Make it fully visible only when disabled
+  }
+`
+
+const Title = styled.h2`
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  margin-top: 0;
+  font-size: 32px;
+  text-shadow: 2px 2px 4px rgba(255, 51, 51, 0.3), 0 0 10px rgba(255, 51, 51, 0.2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  text-align:center;
+`
+
+// const OrderedList = styled.ol`
+//   padding-left: 0;
+//   counter-reset: item;
+//   list-style-type: none;
+// `
+
+// const ListItem = styled.li`
+//   margin-bottom: 20px;
+//   position: relative;
+//   padding-left: 50px;
+//   font-size: 16px;
+
+//   &::before {
+//     content: counter(item);
+//     counter-increment: item;
+//     position: absolute;
+//     left: 0;
+//     top: 50%;
+//     transform: translateY(-50%);
+//     background-color: #ff0000;
+//     color: #fff;
+//     width: 30px;
+//     height: 30px;
+//     border-radius: 50%;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     font-weight: bold;
+//     font-family: 'Orbitron', sans-serif;
+//   }
+// `
+
+// const Link = styled.a`
+//   color: #ff6666;
+//   text-decoration: none;
+//   position: relative;
+//   transition: color 0.3s ease;
+
+//   &:hover {
+//     color: #ff9999;
+//   }
+// `
+
+// const Note = styled.div`
+//   background-color: rgba(82, 79, 79, 0.8);
+//   padding: 20px;
+//   border-left: 4px solid #ff0000;
+//   margin: 30px 0;
+//   border-radius: 0 10px 10px 0;
+//   font-size: 14px;
+// `
+
 
 const BackButton = styled.button`
   font-family: 'Orbitron', sans-serif;
@@ -218,7 +272,10 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
     return () => clearInterval(checkTronLinkAvailability)
   }, [])
 
-
+ 
+    const handleReload = () => {
+      window.location.reload();
+    };
 
   useEffect(() => {
     // Fetch the task status when the component loads
@@ -249,7 +306,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
 
   const getTaskStatus = (): Record<string, boolean> => {
     const taskStatus = localStorage.getItem('tasks_status')
-    console.log(taskStatus)
+    // console.log(taskStatus)
     return taskStatus ? JSON.parse(taskStatus) : {}
   }
 
@@ -261,17 +318,14 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
 
   const handleTaskCompletion = async () => {
     const username = Cookies.get('username');
-
-  
     // Check if TronLink is installed
     if (window.tronWeb) {
       try {
-        // Always request account access
-        setLoading(true);
         await window.tronWeb.request({ method: 'tron_requestAccounts' });
         
         // Check if TronWeb is ready after requesting access
         if (window.tronWeb.ready) {
+        setLoading(true);
           try {
             const response = await axios.patch(
               'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task1',
@@ -292,7 +346,7 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
             console.error(error);
           }
         } else {
-          toast.error('TronLink is not ready. Please unlock your wallet and try again or come back again', {
+          toast.error('TronLink is not ready. Please unlock your wallet and try again!', {
             position: 'top-center',
           });
           setLoading(false);
@@ -305,8 +359,10 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
         setLoading(false);
         console.error(error);
       }
+      finally{
+        setLoading(false);
+      }
     } else {
-      console.log('hello')
       toast.error('TronLink not detected. Please install TronLink wallet!', {
         position: 'top-center',
       });
@@ -324,53 +380,42 @@ const TronLinkGuide: React.FC<TronLinkGuideProps> = ({ onBack }) => {
         <BackButton onClick={onBack}>← Back</BackButton>
         <ScrollableContent>
           <Container>
-            <Title>HOW TO CREATE A TRONLINK ACCOUNT</Title>
-            <OrderedList>
-              <ListItem>
-                Visit the official TronLink wallet page:{' '}
-                <Link href="https://www.tronlink.org/" target="_blank">
-                  TronLink
-                </Link>
-              </ListItem>
-              <ListItem>
-                Click on{' '}
-                <Link
-                  href="https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec"
-                  target="_blank"
-                >
-                  Add TronLink Extension
-                </Link>{' '}
-                to add the TronLink extension to your browser.
-              </ListItem>
-              <ListItem>Click on 'Add to Chrome' to install the TronLink extension.</ListItem>
-              <ListItem>
-                Once installed, click on the TronLink icon in your browser toolbar.
-              </ListItem>
-              <ListItem>
-                Click on 'Create Account' and follow the steps to set up your new account, including
-                backing up your private key.
-              </ListItem>
-              <ListItem>You're now ready to use TronLink with the Tron blockchain!</ListItem>
-            </OrderedList>
-            <Note>
-              <strong>Note:</strong> Always keep your private key secure and never share it with
-              anyone.
-            </Note>
-            <div className="w-full flex justify-center">
-              <ButtonAddLink onClick={handleTaskCompletion}  disabled={isTaskCompleted}>
+        
+            <Title>Install and Unlock TronLink Wallet</Title>
+            <GuideContainer>
+              <GuideText>
+                Before proceeding, make sure you have the TronLink wallet installed and unlocked. Follow these steps:
+              </GuideText>
+              <GuideImage src={extension} alt="TronLink Installation" />
+              <GuideText>
+                1. Install the TronLink wallet extension from the Chrome Web Store.
+              </GuideText>
+              <GuideImage src={wallet} alt="TronLink Unlock" />
+              <GuideText>
+                2. Once installed, click on the TronLink icon in your browser and unlock your wallet.
+              </GuideText>
+              <GuideText>
+                After completing these steps, click the "Check Wallet" button below to verify your wallet status.
+              </GuideText>
+
+              <ButtonGroup>              
+                <ButtonAddLink onClick={handleTaskCompletion} disabled={isTaskCompleted}>
                 {loading ? (
                   <ScaleLoader height={15} width={4} color="white" />
                 ) : isTaskCompleted ? (
-                  'Task Completed'
+                  'Wallet Verified'
                 ) : (
                   'Check Wallet'
                 )}
               </ButtonAddLink>
-            </div>
+              <ButtonReload onClick={handleReload} disabled={isTaskCompleted}>Reload</ButtonReload>
+              </ButtonGroup>
+
+            </GuideContainer>
             {isTaskCompleted && (
               <div className="w-full flex items-center flex-col">
                 <LevelUpText>
-                  Ready to level up? 🚀 Check out the next challenge and continue your blockchain
+                  Ready to level up? 🚀 Check out the next challenges and continue your blockchain
                   adventure! 💡🔗
                 </LevelUpText>
                 <ContinueButton onClick={() => navigate('/')}>Continue Your Journey</ContinueButton>
