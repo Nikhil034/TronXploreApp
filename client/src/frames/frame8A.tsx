@@ -580,8 +580,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               </Button>
             </ButtonGroup>
 
-            {/* {isTokenMinted && (
-              <> */}
+            {isTokenMinted && (
+              <>
                 
                 <HighlightedText>
                   Great! Your TRC-20 token has been minted. Follow these steps to add it to your
@@ -618,8 +618,8 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                     <Button>View Transaction</Button>
                   </a>
                 </ButtonGroup>
-              {/* </>
-            )} */}
+              </>
+            )}
 
             {isTokenVerified && (
               <ButtonGroup>

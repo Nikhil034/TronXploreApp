@@ -167,6 +167,7 @@ const Button = styled.button`
 `
 const ButtonCont = styled(Button)`
   background: linear-gradient(45deg, #4caf50, #388e3c);
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 `
 
 const ButtonContainer = styled.div`
@@ -385,7 +386,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             await window.tronWeb.request({
               method: 'tron_requestAccounts',
             })
-            toast.success('TronLink connected. Please try again.', {
+            toast.success('TronLink connected or need to unlock!. Please try again.', {
               position: 'top-center',
             })
             setLoading(false);
