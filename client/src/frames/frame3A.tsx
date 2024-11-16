@@ -409,8 +409,7 @@ export default function TransactionSigning({ onBack }: TransactionSigningProps) 
               <br />
               <br />
               <b>
-                Note: On this platform, we are not conducting real transactions that involve actual
-                funds or tokens. Instead, we are signing a simple message for learning purposes.
+                Note: On this platform, We are signing a simple message for learning purposes.
                 This ensures that you can safely practice signing without risking any assets.
               </b>
             </Text>

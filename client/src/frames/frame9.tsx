@@ -284,7 +284,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
                 </TokenDetails>
 
                 <Button onClick={() => navigate('/task9_continue')}>
-                  Let's sent your custome tokken
+                  Let's sent your custome token
                 </Button>
               </div>
             )}

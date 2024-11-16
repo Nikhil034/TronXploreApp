@@ -491,25 +491,34 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
         <ScrollableContent>
           <Container>
             <Title>Mint TRC-20 Tokens</Title>
-            <Description>
+            {/* <Description>
               For this minting token purpose, we are using the Nile testnet. Nile is a TRON testnet
               that allows developers to test their smart contracts and applications without using
               real TRX.
+            </Description> */}
+            <Description>
+              Create your own TRC-20 token on the TRON mainnet. This process requires real TRX for
+              transaction fees. Make sure you have sufficient TRX in your wallet before proceeding.
             </Description>
 
-            <Label>What is Nile Testnet?</Label>
+            {/* <Label>What is Nile Testnet?</Label> */}
+            <Label>Important Information</Label>
             <HighlightedText>
               <DiscList>
-                <Lists>Nile is a test environment that mimics the TRON mainnet.</Lists>
+                {/* <Lists>Nile is a test environment that mimics the TRON mainnet.</Lists>
                 <Lists>It allows free testing of smart contracts and DApps.</Lists>
                 <Lists>Transactions on Nile do not involve real TRX or tokens.</Lists>
                 <Lists>
                   It's ideal for development and testing before deploying to the mainnet.
-                </Lists>
+                </Lists> */}
+                <Lists>You are creating a real TRC-20 token on the TRON mainnet.</Lists>
+                <Lists>Transaction fees will be charged in real TRX.</Lists>
+                <Lists>The token will be immediately tradeable on the TRON network.</Lists>
+                <Lists>Make sure to save your token's contract address after minting.</Lists>
               </DiscList>
             </HighlightedText>
 
-            <Label>Steps to change network from Shasta to Nile:</Label>
+            {/* <Label>Steps to change network from Shasta to Nile:</Label>
             <List>
               <ListItem>Open your TronLink wallet extension.</ListItem>
               <ListItem>
@@ -517,9 +526,16 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               </ListItem>
               <ListItem>Select "Nile Testnet" from the list of available networks.</ListItem>
               <ListItem>Ensure that your wallet now shows "Nile" as the active network.</ListItem>
+            </List> */}
+            <Label>Before You Start:</Label>
+            <List>
+              <ListItem>Ensure your TronLink wallet is connected to Mainnet.</ListItem>
+              <ListItem>Verify you have sufficient TRX for transaction fees.</ListItem>
+              <ListItem>Double-check your token details before minting.</ListItem>
+              <ListItem>Keep your contract address safe after minting.</ListItem>
             </List>
 
-            <HighlightedText2>
+            {/* <HighlightedText2>
               To mint tokens on the Nile testnet, you'll need Nile TRX. You can get free Nile TRX
               from the{' '}
               <a
@@ -531,7 +547,11 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                 Nile faucet
               </a>
               .
-            </HighlightedText2>
+            </HighlightedText2> */}
+             <HighlightedText>
+              Note: Token decimals are set to 18 by default, providing the same precision as TRX.
+              This is the standard for most TRC20 tokens.
+            </HighlightedText>
 
             <InputGroup>
               <Label>Token Name:</Label>

@@ -122,7 +122,7 @@ const List = styled.ol`
 `
 const ButtonGroup = styled.div`
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
   margin-top: 30px;
   gap: 10px;
 `
@@ -293,7 +293,7 @@ const LoadingMessage = styled.p`
       opacity: 0.6;
     }
   }
-`;
+`
 
 interface GettingTRXProps {
   onBack: () => void
@@ -350,26 +350,26 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
     if (window.tronWeb && window.tronWeb.ready) {
       setLoading(true)
       const address = window.tronWeb.defaultAddress.base58
-      
+
       // Fetch the last recorded balance from your backend
       const response = await axios.get(
         `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`
       )
       setLastBalance(response.data.balance_shasta)
-  
+
       // Function to poll the balance
       const pollBalance = async (attempt = 1, maxAttempts = 15, delay = 2000) => {
         try {
           const currentBalance = await window.tronWeb.trx.getBalance(address)
           setRecentBalance(currentBalance)
-          
+
           if (currentBalance > response.data.balance_shasta) {
             // If balance has increased, update the backend and complete the task
             const patchResponse = await axios.patch(
               'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4',
               { address: address }
             )
-  
+
             toast.success('Congratulations on completing your task! 🎉', {
               position: 'top-center',
             })
@@ -384,9 +384,12 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
               pollBalance(attempt + 1, maxAttempts, delay * 1.5) // Exponential backoff
             }, delay)
           } else {
-            toast.error('Your balance is still equal or not greater than your last recorded balance!', {
-              position: 'top-center',
-            })
+            toast.error(
+              'Your balance is still equal or not greater than your last recorded balance!',
+              {
+                position: 'top-center',
+              }
+            )
             setLoading(false)
           }
         } catch (error) {
@@ -397,38 +400,34 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
           })
         }
       }
-  
+
       // Start polling the balance
       pollBalance()
       setShow(true)
-    } 
-    else {
+    } else {
       // Request TronLink to connect
-      const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
-  
-        if (!tronLinkInstalled) {
-          toast.error('TronLink not detected. Please install TronLink wallet!', {
+      const tronLinkInstalled = window.tronWeb && window.tronWeb.request
+
+      if (!tronLinkInstalled) {
+        toast.error('TronLink not detected. Please install TronLink wallet!', {
+          position: 'top-center',
+        })
+      } else {
+        try {
+          await window.tronWeb.request({
+            method: 'tron_requestAccounts',
+          })
+          toast.success('TronLink connected. Please try again.', {
+            position: 'top-center',
+          })
+        } catch (error) {
+          toast.error('Failed to connect to TronLink. Please try again!', {
             position: 'top-center',
           })
         }
-        else
-        {
-          try {
-            await window.tronWeb.request({
-              method: 'tron_requestAccounts',
-            })
-            toast.success('TronLink connected. Please try again.', {
-              position: 'top-center',
-            })
-          } catch (error) {
-            toast.error('Failed to connect to TronLink. Please try again!', {
-              position: 'top-center',
-            })
-          }
-        }    
+      }
     }
   }
-  
 
   return (
     <>
@@ -438,20 +437,28 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
         <BackButton onClick={onBack}>← Back to Game</BackButton>
         <ScrollableContent>
           <Container>
-            <Title>Getting TRX in Your TronLink Wallet</Title>
+            <Title>Check Your TRX Balance</Title>
             <Text>
               TRX is the native cryptocurrency of the Tron blockchain. It is used for paying
               transaction fees, smart contract interactions, and much more.
             </Text>
 
-            <Subtitle>What is Shasta Testnet?</Subtitle>
+            {/* <Subtitle>What is Shasta Testnet?</Subtitle>
             <HighlightedText>
               Shasta Testnet is a testing environment for Tron developers. It allows you to use TRX
               for free in a simulated environment without affecting the main Tron network. It's
               great for learning and experimenting without any risk.
+            </HighlightedText> */}
+
+            <Subtitle>What is the Tron Mainnet?</Subtitle>
+            <HighlightedText>
+              The Tron Mainnet is the primary, live network where real TRX transactions and smart
+              contracts occur. Unlike testnets, all transactions on the Mainnet are permanent,
+              affect the actual Tron ecosystem, and require real TRX. It's where production-level
+              applications operate.
             </HighlightedText>
 
-            <Subtitle>Steps to Get TRX on Shasta Testnet</Subtitle>
+            {/* <Subtitle>Steps to Get TRX on Shasta Testnet</Subtitle>
             <List>
               <ListItem>
                 Open your TronLink wallet and click on the network drop-down (top center).
@@ -473,38 +480,55 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
               <ListItem>
                 You should receive TRX in your wallet shortly. Check your TronLink wallet balance.
               </ListItem>
+            </List> */}
+
+            <Subtitle>Steps to Proceed</Subtitle>
+            <List>
+              <ListItem>
+                Open your TronLink wallet and click on the network drop-down (top center).
+              </ListItem>
+              <ListItem>
+                Select <strong>Mainnet(TronGrid)</strong> from the list of available networks.
+              </ListItem>
+              <ListItem>
+                Check your TronLink wallet balance. If your balance is <strong>0 TRX</strong>, you
+                cannot proceed to the next steps.
+              </ListItem>
+              <ListItem>Click the button below to verify your TRX balance.</ListItem>
             </List>
 
             <ButtonGroup>
-                {loading ? (
-                  <>
-              <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
-                  <ScaleLoader height={15} width={4} color="white" />
+              {loading ? (
+                <>
+                  <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
+                    <ScaleLoader height={15} width={4} color="white" />
                   </Button>
                   <LoadingMessage>
-                  Please wait while we fetch your updated balance. This may take a few moments...
-                </LoadingMessage>
+                    Please wait while we fetch your updated balance. This may take a few moments...
+                  </LoadingMessage>
                 </>
-                ) : (
-                  <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
-                  {isTaskCompleted ? 'Task Completed':'Check Balance'}
-                  </Button>
-                )}
-              
+              ) : (
+                <Button onClick={HandleBalanceCheck} disabled={isTaskCompleted || loading}>
+                  {isTaskCompleted ? 'Task Completed' : 'Check Balance'}
+                </Button>
+              )}
+
               <ButtonCont disabled={!isValid} onClick={onBack}>
                 {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
               </ButtonCont>
             </ButtonGroup>
             {/* {recent_balance === null && ( */}
-              
-             {/* )} */}
+
+            {/* )} */}
             {!loading && Isshow && (
               <div className="mt-10 ">
-                <h1>Last Balance (TRX) : {last_balance}</h1>
-                <h1>Now Balance (TRX) : {recent_balance !== null ? recent_balance : 'Updating...'}</h1>
+                {/* <h1>Last Balance (TRX) : {last_balance}</h1> */}
+                <h1>
+                  Now Balance (TRX) : {recent_balance !== null ? recent_balance : 'Updating...'}
+                </h1>
                 <br />
                 <p>
-                  Note: In order to complete this task, your balance should be greater than your last recorded balance.
+                  Note: In order to complete this task, your balance should be greater than 0.
                 </p>
               </div>
             )}

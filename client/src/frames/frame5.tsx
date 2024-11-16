@@ -423,7 +423,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             <HighlightedText>
               To safely test transactions, you can create a sub-account on TronLink. This allows you
               to test with smaller amounts of TRX without risking your main account and make sure
-              you are there in <b>shasta</b> network
+              you are there in <b>Mainnet</b> network
             </HighlightedText>
 
             <List>
@@ -458,6 +458,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               placeholder="Enter amount of TRX..."
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              min="0"
             />
 
             <Subtitle>Step 3: Confirm the Transaction</Subtitle>

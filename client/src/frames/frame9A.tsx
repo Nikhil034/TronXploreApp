@@ -497,6 +497,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             <Input
              type="number"
              placeholder="Enter amount of TRX..."
+             min={0}
              value={amount === undefined ? '' : amount}
              onChange={(e) => {
              const inputValue = e.target.value;

@@ -196,6 +196,17 @@ const InfoListItem = styled.li`
   }
 `
 
+const HighlightedText = styled(Text)`
+  margin-bottom: 15px;
+  background-color: rgb(82 79 79 / 80%);
+  padding: 20px;
+  border-left: 4px solid #cc0000;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+`
+
 const ButtonCont = styled.button<{ disabled: boolean }>`
   background: ${({ disabled }) =>
     disabled
@@ -443,6 +454,8 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
                 </InfoListItem>
               </InfoList>
             </InfoBox>
+
+            <HighlightedText>Note: Make sure that you are on the Mainnet network in your TronLink wallet. Transactions on other networks will not be processed on the main Tron blockchain.</HighlightedText>
             <Label htmlFor="trxInput">Enter TRX amount to stake:</Label>
             <Input
               type="number"
