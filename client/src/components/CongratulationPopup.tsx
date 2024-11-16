@@ -349,6 +349,89 @@ const CongratulationsPopup = ({ onClose }) => {
     }
   }
 
+  /*
+  const mintNFT = async (metadataURI: string) => {
+  try {
+    // Check if TronWeb is available
+    if (!window.tronWeb?.ready) {
+      toast.error('TronWeb is not initialized. Please install and connect TronLink.');
+      setLoading(false);
+      return;
+    }
+
+    const tronWeb = window.tronWeb;
+    const address = tronWeb.defaultAddress.base58;
+
+    // Check network (mainnet)
+    const network = await tronWeb.trx.getChainParameters();
+    if (network.chainId !== 'mainnet') {
+      toast.error('Please switch to Tron Mainnet.', { position: 'top-center' });
+      setLoading(false);
+      return;
+    }
+
+    if (!tronWeb.isAddress(address)) {
+      toast.error('Invalid Tron address detected. Please reconnect your wallet.');
+      setLoading(false);
+      return;
+    }
+
+    // Provide user feedback
+    toast.info('Minting in progress... Please wait.');
+
+    // Contract address and instance
+    const contractAddress = 'TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo';
+    const contract = await tronWeb.contract().at(contractAddress);
+
+    // Mint the NFT
+    const result = await contract
+      .safeMint(
+        address, // User's Tron address
+        metadataURI // Metadata URI for the NFT
+      )
+      .send();
+
+    if (result?.receipt?.result === 'SUCCESS') {
+      console.log('Transaction Hash:', result.txID);
+      setNftHash(result.txID);
+
+      // Update backend with NFT hash
+      const response = await axios.patch(
+        'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
+        {
+          address: address,
+          nft_hash: result.txID,
+        }
+      );
+
+      if (response?.data?.success) {
+        toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
+          position: 'top-center',
+        });
+      } else {
+        toast.error('Failed to update NFT certificate status.', {
+          position: 'top-center',
+        });
+      }
+    } else {
+      console.error('Transaction failed:', result);
+      toast.error('Minting failed. Please check your transaction.');
+    }
+    setLoading(false);
+  } catch (error) {
+    console.error('Error minting NFT:', error);
+    if (error.message.includes('INSUFFICIENT_BALANCE')) {
+      toast.error('Not enough TRX balance for minting. Please fund your wallet.');
+    } else {
+      toast.error('Error minting NFT. Please try again.');
+    }
+    setLoading(false);
+  }
+};
+
+
+*/
+
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight })

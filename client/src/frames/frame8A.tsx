@@ -349,6 +349,13 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
       })
       return
     }
+    const balance = await window.tronWeb.trx.getBalance(window.tronWeb.defaultAddress.base58);
+    if(balance==0){
+      toast.error('Insufficient balance mint TRC20 token,try again!');
+      setLoadingtrx(false);
+      return
+    }
+
 
     try {
       setLoadingtrx(true)
@@ -438,9 +445,113 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
       toast.error('An error occurred while minting tokens. Please try again.', {
         position: 'top-center',
       })
-      setLoading(false)
+      setLoadingtrx(false)
     }
   }
+
+  /*
+  const handleMint = async () => {
+    if (!window.tronWeb || !window.tronWeb.ready) {
+      toast.error('TronLink wallet is not installed or not logged in.', {
+        position: 'top-center',
+      });
+      return;
+    }
+  
+    if (!tokenName || !tokenSymbol || !initialSupply || parseInt(initialSupply, 10) <= 0) {
+      toast.error('Please enter valid details for the token!', {
+        position: 'top-center',
+      });
+      return;
+    }
+  
+    try {
+      // Check if the user is on the Mainnet
+      const currentNode = window.tronWeb.fullNode.host;
+      if (!currentNode.includes('api.trongrid.io')) {
+        toast.error('You are not connected to the Mainnet. Please switch to the Mainnet in TronLink.', {
+          position: 'top-center',
+        });
+        return;
+      }
+  
+      setLoadingtrx(true);
+      const userAddress = window.tronWeb.defaultAddress.base58;
+      Setaddress(userAddress);
+  
+      const FACTORY_ADDRESS = 'MAINNET_FACTORY_ADDRESS'; // Replace with mainnet factory contract address
+      const DEFAULT_DECIMALS = 18;
+  
+      const contract = await window.tronWeb.contract().at(FACTORY_ADDRESS);
+      const bigIntSupply = BigInt(initialSupply) * BigInt(10 ** DEFAULT_DECIMALS);
+  
+      const transaction = await contract
+        .createToken(tokenName, tokenSymbol, userAddress, bigIntSupply.toString())
+        .send({ feeLimit: 400000000 });
+  
+      const tronScanLink = `https://tronscan.org/#/transaction/${transaction}`; // Updated to Mainnet TronScan
+      Settxhash(transaction);
+      SettxhashLink(tronScanLink);
+  
+      let receipt;
+      let attempts = 0;
+      const maxAttempts = 10;
+      const delayBetweenAttempts = 5000; // 5 seconds
+  
+      while (!receipt && attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts));
+        receipt = await window.tronWeb.trx.getTransactionInfo(transaction);
+        attempts++;
+      }
+  
+      if (receipt && receipt.result === 'SUCCESS') {
+        if (receipt.log && receipt.log.length > 0) {
+          const eventLog = receipt.log[0];
+          const newTokenAddress = window.tronWeb.address.fromHex(eventLog.topics[1]);
+  
+          setContractAddress(newTokenAddress);
+          setIsTokenMinted(true);
+          setDisablemint(true);
+  
+          toast.success(
+            <div>
+              Token successfully minted!
+              <br />
+              Token Address: {newTokenAddress}
+              <br />
+              <a href={tronScanLink} target="_blank" rel="noopener noreferrer">
+                View on TronScan
+              </a>
+            </div>
+          );
+          setLoadingtrx(false);
+        } else {
+          toast.success(
+            <div>
+              Token minted successfully, check the transaction event log to get the address.
+              <br />
+              <a href={tronScanLink} target="_blank" rel="noopener noreferrer">
+                View on TronScan
+              </a>
+            </div>
+          );
+          setIsTokenMinted(true);
+          setDisablemint(true);
+          setLoadingtrx(false);
+        }
+      } else {
+        toast.error('Transaction failed. Please try again.', { position: 'top-center' });
+        setLoadingtrx(false);
+      }
+    } catch (error) {
+      console.error('Error during minting:', error);
+      toast.error('An error occurred while minting tokens. Please try again.', {
+        position: 'top-center',
+      });
+      setLoadingtrx(false);
+    }
+  };
+  */
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(contractAddress)

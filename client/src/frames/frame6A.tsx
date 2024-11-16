@@ -492,85 +492,178 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
     return /^[0-9a-fA-F]{64}$/.test(hash)
   }
 
+  // const handleCheck = async () => {
+  //   if (window.tronWeb && window.tronWeb.ready) {
+  //     // console.log('TronLink wallet is available and ready.')
+  //     const tronWeb = window.tronWeb
+  //     const currentNode = tronWeb.fullNode.host
+  //     if (currentNode.includes('api.trongrid.io')) {
+  //       setNetwork('Mainnet')
+  //     } else if (currentNode.includes('api.shasta.trongrid.io')) {
+  //       setNetwork('Shasta')
+  //     } else if (currentNode.includes('nile.trongrid.io')) {
+  //       setNetwork('Nile')
+  //     } else {
+  //       console.log('User is connected to a custom or private network')
+  //     }
+  //     if (!transactionHash) {
+  //       setError('Please enter a transaction hash')
+  //       return
+  //     }
+
+  //     if (!isValidTronHash(transactionHash)) {
+  //       setError('Invalid transaction hash format')
+  //       return
+  //     }
+
+  //     setError('')
+
+  //     try {
+  //       setLoading(true)
+  //       const transactionResult = await fetchTransactionUsage(transactionHash)
+  //       // console.log(transactionResult);
+  //       if (transactionResult) {
+  //         const { bandwidth, energyUsed } = transactionResult
+  //         setResources({bandwidth:bandwidth,energy:energyUsed});
+  //         // console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
+  //       } else {
+  //         toast.error('Failed to fetch transaction usage,Please try again!');
+  //         setLoading(false);
+  //         console.log('Failed to fetch transaction usage.')
+  //       }
+  //       setUniqueHashes((prev) => new Set(prev).add(transactionHash))
+  //       const tronWeb = window.tronWeb
+  //       const address = tronWeb.defaultAddress.base58
+  //       await callApi(address)
+  //     } catch (error: any) {
+  //       setError(error.message)
+  //       toast.error(error.message, {
+  //         position: 'top-center',
+  //       })
+  //       setLoading(false)
+  //     }
+  //   } else {
+  //     // Request TronLink to connect
+  //     const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+  
+  //       if (!tronLinkInstalled) {
+  //         toast.error('TronLink not detected. Please install TronLink wallet!', {
+  //           position: 'top-center',
+  //         })
+  //         setLoading(false);
+  //       }
+  //       else
+  //       {
+  //         try {
+  //           await window.tronWeb.request({
+  //             method: 'tron_requestAccounts',
+  //           })
+  //           toast.success('TronLink connected. Please try again.', {
+  //             position: 'top-center',
+  //           })
+  //           setLoading(false);
+  //         } catch (error) {
+  //           toast.error('Failed to connect to TronLink. Please try again!', {
+  //             position: 'top-center',
+  //           })
+  //           setLoading(false);
+  //         }
+  //       }    
+  //   }
+  // }
+
+
+  //Switch to Mainnet
   const handleCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
-      // console.log('TronLink wallet is available and ready.')
-      const tronWeb = window.tronWeb
-      const currentNode = tronWeb.fullNode.host
+      const tronWeb = window.tronWeb;
+      const currentNode = tronWeb.fullNode.host;
+      let network = 'Custom/Private';
+  
       if (currentNode.includes('api.trongrid.io')) {
-        setNetwork('Mainnet')
+        network = 'Mainnet';
       } else if (currentNode.includes('api.shasta.trongrid.io')) {
-        setNetwork('Shasta')
+        network = 'Shasta';
       } else if (currentNode.includes('nile.trongrid.io')) {
-        setNetwork('Nile')
-      } else {
-        console.log('User is connected to a custom or private network')
+        network = 'Nile';
       }
+  
+      setNetwork(network);
+  
+      if (network !== 'Mainnet') {
+        toast.error('Please switch to the Mainnet to check transaction resources.', {
+          position: 'top-center',
+        });
+        setLoading(false);
+        return;
+      }
+  
       if (!transactionHash) {
-        setError('Please enter a transaction hash')
-        return
+        setError('Please enter a transaction hash');
+        setLoading(false);
+        return;
       }
-
+  
       if (!isValidTronHash(transactionHash)) {
-        setError('Invalid transaction hash format')
-        return
+        setError('Invalid transaction hash format');
+        setLoading(false);
+        return;
       }
-
-      setError('')
-
+  
+      setError('');
+  
       try {
-        setLoading(true)
-        const transactionResult = await fetchTransactionUsage(transactionHash)
-        // console.log(transactionResult);
+        setLoading(true);
+        const transactionResult = await fetchTransactionUsage(transactionHash);
+  
         if (transactionResult) {
-          const { bandwidth, energyUsed } = transactionResult
-          setResources({bandwidth:bandwidth,energy:energyUsed});
-          // console.log(`Bandwidth: ${bandwidth}, Energy Used: ${energyUsed}`)
+          const { bandwidth, energyUsed } = transactionResult;
+          setResources({ bandwidth: bandwidth, energy: energyUsed });
         } else {
-          toast.error('Failed to fetch transaction usage,Please try again!');
+          toast.error('Failed to fetch transaction usage. Please try again!', {
+            position: 'top-center',
+          });
           setLoading(false);
-          console.log('Failed to fetch transaction usage.')
+          return;
         }
-        setUniqueHashes((prev) => new Set(prev).add(transactionHash))
-        const tronWeb = window.tronWeb
-        const address = tronWeb.defaultAddress.base58
-        await callApi(address)
-      } catch (error: any) {
-        setError(error.message)
+  
+        setUniqueHashes((prev) => new Set(prev).add(transactionHash));
+        const address = tronWeb.defaultAddress.base58;
+        await callApi(address);
+      } catch (error:any) {
+        setError(error.message);
         toast.error(error.message, {
           position: 'top-center',
-        })
-        setLoading(false)
+        });
+      } finally {
+        setLoading(false);
       }
     } else {
-      // Request TronLink to connect
       const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
   
-        if (!tronLinkInstalled) {
-          toast.error('TronLink not detected. Please install TronLink wallet!', {
+      if (!tronLinkInstalled) {
+        toast.error('TronLink not detected. Please install TronLink wallet!', {
+          position: 'top-center',
+        });
+        setLoading(false);
+      } else {
+        try {
+          await window.tronWeb.request({
+            method: 'tron_requestAccounts',
+          });
+          toast.success('TronLink connected. Please try again.', {
             position: 'top-center',
-          })
+          });
+        } catch (error) {
+          toast.error('Failed to connect to TronLink. Please try again!', {
+            position: 'top-center',
+          });
+        } finally {
           setLoading(false);
         }
-        else
-        {
-          try {
-            await window.tronWeb.request({
-              method: 'tron_requestAccounts',
-            })
-            toast.success('TronLink connected. Please try again.', {
-              position: 'top-center',
-            })
-            setLoading(false);
-          } catch (error) {
-            toast.error('Failed to connect to TronLink. Please try again!', {
-              position: 'top-center',
-            })
-            setLoading(false);
-          }
-        }    
+      }
     }
-  }
+  };
 
   const callApi = async (address: string) => {
     try {
@@ -638,7 +731,7 @@ export default function TronResourceChecker({ onBack }: TronResourceCheckerProps
               <ListItem>
                 Visit the{' '}
                 <Link
-                  href={`https://shasta.tronscan.org/#/address/${walletAddress}`}
+                  href={`https://tronscan.org/#/address/${walletAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

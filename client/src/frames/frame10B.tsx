@@ -408,6 +408,117 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
       }
     }
   }
+
+  /*
+
+  const HandleTransaction = async () => {
+  // Check if TronLink is installed
+  if (typeof window.tronWeb === 'undefined') {
+    toast.error('Please install TronLink wallet', {
+      position: 'top-center',
+    });
+    return;
+  }
+
+  // Check if wallet is connected
+  if (!window.tronWeb.ready) {
+    try {
+      // Prompt user to connect wallet
+      await window.tronWeb.request({ method: 'tron_requestAccounts' });
+      return;
+    } catch (error) {
+      toast.error('Please connect your TronLink wallet', {
+        position: 'top-center',
+      });
+      return;
+    }
+  }
+
+  // Get the connected address
+  const address = window.tronWeb.defaultAddress.base58;
+
+  if (!address || !window.tronWeb.isAddress(address)) {
+    toast.error('Invalid wallet address detected. Please reconnect your wallet.', {
+      position: 'top-center',
+    });
+    return;
+  }
+
+  // Validate block number and bandwidth
+  if (!blockno || isNaN(blockno) || !bandwidth || isNaN(bandwidth)) {
+    toast.error('Invalid Block Number or Bandwidth. Please try again.', {
+      position: 'top-center',
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // Fetch blockno and bandwidth details
+    const getdetails = await axios
+      .get(
+        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`
+      )
+      .catch((error) => {
+        console.error('Error fetching blockno and bandwidth:', error);
+        toast.error('Failed to retrieve transaction details. Please try again.', {
+          position: 'top-center',
+        });
+        setLoading(false);
+        return null;
+      });
+
+    if (!getdetails) return;
+
+    // Compare blockno and bandwidth
+    if (
+      blockno == getdetails.data.trc20_send_blockno_nile &&
+      bandwidth == getdetails.data.trc20_send_bandwidth_nile
+    ) {
+      const response = await axios
+        .patch(
+          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task10',
+          { address: address }
+        )
+        .catch((error) => {
+          console.error('Error updating task:', error);
+          toast.error('Failed to update task status. Please try again.', {
+            position: 'top-center',
+          });
+          setLoading(false);
+          return null;
+        });
+
+      if (response) {
+        toast.success('Congratulations on completing the final task! 🎉', {
+          position: 'top-center',
+        });
+        updateTaskStatus('is_view_transaction_task10');
+        setBlockno('');
+        setBandwidth('');
+        setIsTaskCompleted(true);
+        setIsValid(true);
+        setLoading(false);
+      }
+    } else {
+      toast.error('Incorrect Block Number or Bandwidth found. Try again!', {
+        position: 'top-center',
+      });
+      setLoading(false);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    toast.error('An error occurred. Please try again.', {
+      position: 'top-center',
+    });
+    setLoading(false);
+  }
+};
+
+*/
+    
+
   const handleFinish = async () => {
     const username = Cookies.get('username')
 

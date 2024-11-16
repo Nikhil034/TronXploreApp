@@ -346,24 +346,37 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
     fetchTaskStatus()
   }, []) // Empty dependency array to run only on component mount
 
+
   const HandleBalanceCheck = async () => {
     if (window.tronWeb && window.tronWeb.ready) {
       setLoading(true)
       const address = window.tronWeb.defaultAddress.base58
 
+      const currentNode = await window.tronWeb.fullNode.host // Gets the current network
+      const isMainnet = currentNode.includes('https://api.trongrid.io')
+
+      if (!isMainnet) {
+        toast.error('You are not connected to the Mainnet. Please switch to Mainnet.', {
+          position: 'top-center',
+        })
+        setLoading(false)
+        return
+      }
+
       // Fetch the last recorded balance from your backend
-      const response = await axios.get(
-        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`
-      )
-      setLastBalance(response.data.balance_shasta)
+      // const response = await axios.get(
+      //   `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/send-trx-txhash-shasta`
+      // )
+      // setLastBalance(response.data.balance_shasta)
 
       // Function to poll the balance
-      const pollBalance = async (attempt = 1, maxAttempts = 15, delay = 2000) => {
+      const pollBalance = async (attempt = 1, maxAttempts = 7, delay = 2000) => {
         try {
           const currentBalance = await window.tronWeb.trx.getBalance(address)
+          console.log("376:",currentBalance);
           setRecentBalance(currentBalance)
 
-          if (currentBalance > response.data.balance_shasta) {
+          if (currentBalance >0) {
             // If balance has increased, update the backend and complete the task
             const patchResponse = await axios.patch(
               'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task4',
@@ -385,7 +398,7 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
             }, delay)
           } else {
             toast.error(
-              'Your balance is still equal or not greater than your last recorded balance!',
+              'Your balance is 0 only on mainnet,try again!',
               {
                 position: 'top-center',
               }
@@ -428,6 +441,8 @@ export default function GettingTRX({ onBack }: GettingTRXProps) {
       }
     }
   }
+
+
 
   return (
     <>
