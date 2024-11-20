@@ -111,7 +111,7 @@ export default class MyPlayer extends Player {
         x: 860,
         y: 115,
         message:
-          'Task 4: Check TRX Balance. Verify you have TRX available for transactions.',
+          'Task 4: Get Test TRX. Find the TRX faucet to receive some test TRX for transactions',
         shown: false,
         button: 'Task 4',
         taskKey: 'is_get_trx_task4',

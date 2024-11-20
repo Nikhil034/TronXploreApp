@@ -572,14 +572,14 @@ export default function SendTRX({ onBack }: SendTRXProps) {
                 />
 
                 <ButtonContainer>
-                  <Button onClick={handleVerify}>
+                  <Button onClick={handleVerify} disabled={isTaskCompleted}>
                     {loadingverify ? (
                       <ScaleLoader height={15} width={4} color="white" />
                     ) : (
                       'Verify Transaction'
                     )}
                   </Button>
-                  <ButtonCont onClick={() => navigate('/')} disabled={isTaskCompleted}>
+                  <ButtonCont onClick={() => navigate('/')} disabled={!isTaskCompleted}>
                   {isTaskCompleted ? 'Continue Your Journey' : 'Complete Task to Continue'}
                   </ButtonCont>
                 </ButtonContainer>

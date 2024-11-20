@@ -233,7 +233,7 @@ const CongratulationsPopup = ({ onClose }) => {
     try {
       await uploadFileAndMint()
       setShowTransaction(true)
-      setIsCertified(true)
+      // setIsCertified(true)
     } catch (error) {
       // console.error('Error minting certificate:', error)
       toast.error('Failed to mint certificate. Please try again.')
@@ -261,6 +261,7 @@ const CongratulationsPopup = ({ onClose }) => {
       })
 
       const LighthouseKey = import.meta.env.VITE_LIGHTHOUSE_ID
+      // console.log("Line 264:",LighthouseKey);
       if (LighthouseKey) {
         console.log('TRUE')
       }
@@ -279,7 +280,7 @@ const CongratulationsPopup = ({ onClose }) => {
       // console.log('Metadata successfully uploaded.');
 
       // console.log('Metadata CID:', metadataCID);
-      // console.log('Visit metadata at:', `https://gateway.lighthouse.storage/ipfs/${metadataCID}`);
+      console.log('Visit metadata at:', `https://gateway.lighthouse.storage/ipfs/${metadataCID}`);
 
       // After uploading, mint the NFT with the contract
       if (metadataCID) {
@@ -293,141 +294,149 @@ const CongratulationsPopup = ({ onClose }) => {
     }
   }
 
-  // Function to mint NFT using window.tronWeb
-  // const mintNFT = async (metadataURI: string) => {
-  //   try {
-  //     // Check if window.tronWeb is available
-
-  //     const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3'
-
-  //     if (typeof window !== 'undefined' && window.tronWeb) {
-  //       const tronWeb = window.tronWeb
-  //       const address = tronWeb.defaultAddress.base58
-  //       // console.log(address);
-
-  //       // Get the contract instance
-  //       const contract = await tronWeb.contract().at(contractAddress)
-
-  //       // Mint the NFT using the safeMint function (address + metadataURI)
-  //       const result = await contract
-  //         .safeMint(
-  //           address, // Replace with user's Tron address
-  //           metadataURI
-  //         )
-  //         .send({ from: tronWeb.defaultAddress.base58 })
-
-  //       // Set the transaction hash and display it
-
-  //       const transactionHash = result.txID // Access the transaction hash from the result
-  //       console.log('Transaction Hash:', transactionHash)
-  //       console.log('Transaction Hash:', result)
-  //       setNftHash(result)
-  //       const respose = await axios.patch(
-  //         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
-  //         {
-  //           address: address,
-  //           nft_hash: result,
-  //         }
-  //       )
-  //       if (respose.data) {
-  //         toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
-  //           position: 'top-center',
-  //         })
-  //       }
-  //       setLoading(false)
-  //       // setShowSteps(true);
-  //       // setIsCertified(true);
-  //       // setShowTransaction(true);
-  //     } else {
-  //       console.error('TronWeb is not available.')
-  //       toast.error('TronWeb is not available. Please install TronLink.')
-  //       setLoading(false)
-  //     }
-  //   } catch (error) {
-  //     console.error('Error minting NFT:', error)
-  //     setLoading(false)
-  //   }
-  // }
-
-  
-  const mintNFT = async (metadataURI: string) => {
+ // Function to mint NFT using window.tronWeb
+ const mintNFT = async (metadataURI: string) => {
   try {
-    // Check if TronWeb is available
-    if (!window.tronWeb?.ready) {
-      toast.error('TronWeb is not initialized. Please install and connect TronLink.');
-      setLoading(false);
-      return;
-    }
+    const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3'
 
-    const tronWeb = window.tronWeb;
-    const address = tronWeb.defaultAddress.base58;
+    if (typeof window !== 'undefined' && window.tronWeb) {
+      const tronWeb = window.tronWeb
+      const address = tronWeb.defaultAddress.base58
 
-    // Check network (mainnet)
-    const network = await tronWeb.trx.getChainParameters();
-    if (network.chainId !== 'mainnet') {
-      toast.error('Please switch to Tron Mainnet.', { position: 'top-center' });
-      setLoading(false);
-      return;
-    }
+      // Get the full node URL
+      const currentNode = tronWeb.fullNode.host
 
-    if (!tronWeb.isAddress(address)) {
-      toast.error('Invalid Tron address detected. Please reconnect your wallet.');
-      setLoading(false);
-      return;
-    }
+      // Check if we are connected to the mainnet node
+      if (!currentNode.includes('api.trongrid.io')) {
+        toast.error('Please switch to Tron Mainnet.', { position: 'top-center' })
+        setLoading(false)
+        return
+      }
 
-    // Provide user feedback
-    toast.success('Minting in progress... Please wait.');
+      // Check if the user's TRX balance is sufficient
+      const balance = await tronWeb.trx.getBalance(address)
+      
+      // Convert the balance from SUN (the smallest unit) to TRX
+      const balanceInTRX = tronWeb.fromSun(balance)
+      if (balanceInTRX ==0) {
+        toast.error('Insufficient balance to mint the NFT. Please add more TRX.', { position: 'top-center' })
+        setLoading(false);
+        return
+      }
 
-    // Contract address and instance
-    const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3';
-    const contract = await tronWeb.contract().at(contractAddress);
+      // Get the contract instance
+      const contract = await tronWeb.contract().at(contractAddress)
 
-    // Mint the NFT
-    const result = await contract
-      .safeMint(
-        address, // User's Tron address
-        metadataURI // Metadata URI for the NFT
-      )
-      .send();
+      // Mint the NFT using the safeMint function (address + metadataURI)
+      const result = await contract
+        .safeMint(address, metadataURI)
+        .send({ from: tronWeb.defaultAddress.base58 })
 
-    if (result?.receipt?.result === 'SUCCESS') {
-      console.log('Transaction Hash:', result.txID);
-      setNftHash(result.txID);
+      // Set the transaction hash and display it
+      const transactionHash = result.txID
+      console.log('Transaction Hash:', transactionHash)
 
-      // Update backend with NFT hash
+      setNftHash(result)
       const response = await axios.patch(
         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
         {
           address: address,
-          nft_hash: result.txID,
+          nft_hash: result.txID,  // Make sure to send the txID here
         }
-      );
-
-      if (response?.data?.success) {
+      )
+      
+      if (response.data) {
         toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
           position: 'top-center',
-        });
-      } else {
-        toast.error('Failed to update NFT certificate status.', {
-          position: 'top-center',
-        });
+        })
       }
+
+      setLoading(false)
     } else {
-      console.error('Transaction failed:', result);
-      toast.error('Minting failed. Please check your transaction.');
+      console.error('TronWeb is not available.')
+      toast.error('TronWeb is not available. Please install TronLink.')
+      setLoading(false)
     }
-    setLoading(false);
-  } catch (error:any) {
-    console.error('Error minting NFT:', error);
-    if (error.message.includes('INSUFFICIENT_BALANCE')) {
-      toast.error('Not enough TRX balance for minting. Please fund your wallet.');
-    } else {
-      toast.error('Error minting NFT. Please try again.');
-    }
-    setLoading(false);
+  } catch (error) {
+    console.error('Error minting NFT:', error)
+    setLoading(false)
   }
-};
+}
+
+
+  
+//   const mintNFT = async (metadataURI: string) => {
+//   try {
+//     // Check if TronWeb is available
+//     if (!window.tronWeb?.ready) {
+//       toast.error('TronWeb is not initialized. Please install and connect TronLink.');
+//       setLoading(false);
+//       return;
+//     }
+
+//     const tronWeb = window.tronWeb;
+//     const address = tronWeb.defaultAddress.base58;
+
+   
+
+//     if (!tronWeb.isAddress(address)) {
+//       toast.error('Invalid Tron address detected. Please reconnect your wallet.');
+//       setLoading(false);
+//       return;
+//     }
+
+//     // Provide user feedback
+//     toast.success('Minting in progress... Please wait.');
+
+//     // Contract address and instance
+//     const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3';
+//     const contract = await tronWeb.contract().at(contractAddress);
+
+//     // Mint the NFT
+//     const result = await contract
+//       .safeMint(
+//         address, // User's Tron address
+//         metadataURI // Metadata URI for the NFT
+//       )
+//       .send({ from: tronWeb.defaultAddress.base58 });
+
+//     if (result?.receipt?.result === 'SUCCESS') {
+//       console.log('Transaction Hash:', result.txID);
+//       setNftHash(result.txID);
+
+//       // Update backend with NFT hash
+//       const response = await axios.patch(
+//         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
+//         {
+//           address: address,
+//           nft_hash: result.txID,
+//         }
+//       );
+
+//       if (response?.data?.success) {
+//         toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
+//           position: 'top-center',
+//         });
+//       } else {
+//         toast.error('Failed to update NFT certificate status.', {
+//           position: 'top-center',
+//         });
+//       }
+//     } else {
+//       console.error('Transaction failed:', result);
+//       toast.error('Minting failed. Please check your transaction.');
+//     }
+//     setLoading(false);
+//   } catch (error:any) {
+//     console.error('Error minting NFT:', error);
+//     if (error.message.includes('INSUFFICIENT_BALANCE')) {
+//       toast.error('Not enough TRX balance for minting. Please fund your wallet.');
+//     } else {
+//       toast.error('Error minting NFT. Please try again.');
+//     }
+//     setLoading(false);
+//   }
+// };
 
 
 

@@ -455,7 +455,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
       return;
     }
 
-    setLoading(false)
+    setLoading(true)
     const getdetails = await axios.get(
       `https://api.tronxplore.blockchainbytesdaily.com/api/users/${trc20_adddress}`
     )
