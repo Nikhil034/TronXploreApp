@@ -349,13 +349,6 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
       })
       return
     }
-    const balance = await window.tronWeb.trx.getBalance(window.tronWeb.defaultAddress.base58);
-    if(balance==0){
-      toast.error('Insufficient balance mint TRC20 token,try again!');
-      setLoadingtrx(false);
-      return
-    }
-
 
     try {
       setLoadingtrx(true)
@@ -445,113 +438,9 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
       toast.error('An error occurred while minting tokens. Please try again.', {
         position: 'top-center',
       })
-      setLoadingtrx(false)
+      setLoading(false)
     }
   }
-
-  /*
-  const handleMint = async () => {
-    if (!window.tronWeb || !window.tronWeb.ready) {
-      toast.error('TronLink wallet is not installed or not logged in.', {
-        position: 'top-center',
-      });
-      return;
-    }
-  
-    if (!tokenName || !tokenSymbol || !initialSupply || parseInt(initialSupply, 10) <= 0) {
-      toast.error('Please enter valid details for the token!', {
-        position: 'top-center',
-      });
-      return;
-    }
-  
-    try {
-      // Check if the user is on the Mainnet
-      const currentNode = window.tronWeb.fullNode.host;
-      if (!currentNode.includes('api.trongrid.io')) {
-        toast.error('You are not connected to the Mainnet. Please switch to the Mainnet in TronLink.', {
-          position: 'top-center',
-        });
-        return;
-      }
-  
-      setLoadingtrx(true);
-      const userAddress = window.tronWeb.defaultAddress.base58;
-      Setaddress(userAddress);
-  
-      const FACTORY_ADDRESS = 'MAINNET_FACTORY_ADDRESS'; // Replace with mainnet factory contract address
-      const DEFAULT_DECIMALS = 18;
-  
-      const contract = await window.tronWeb.contract().at(FACTORY_ADDRESS);
-      const bigIntSupply = BigInt(initialSupply) * BigInt(10 ** DEFAULT_DECIMALS);
-  
-      const transaction = await contract
-        .createToken(tokenName, tokenSymbol, userAddress, bigIntSupply.toString())
-        .send({ feeLimit: 400000000 });
-  
-      const tronScanLink = `https://tronscan.org/#/transaction/${transaction}`; // Updated to Mainnet TronScan
-      Settxhash(transaction);
-      SettxhashLink(tronScanLink);
-  
-      let receipt;
-      let attempts = 0;
-      const maxAttempts = 10;
-      const delayBetweenAttempts = 5000; // 5 seconds
-  
-      while (!receipt && attempts < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts));
-        receipt = await window.tronWeb.trx.getTransactionInfo(transaction);
-        attempts++;
-      }
-  
-      if (receipt && receipt.result === 'SUCCESS') {
-        if (receipt.log && receipt.log.length > 0) {
-          const eventLog = receipt.log[0];
-          const newTokenAddress = window.tronWeb.address.fromHex(eventLog.topics[1]);
-  
-          setContractAddress(newTokenAddress);
-          setIsTokenMinted(true);
-          setDisablemint(true);
-  
-          toast.success(
-            <div>
-              Token successfully minted!
-              <br />
-              Token Address: {newTokenAddress}
-              <br />
-              <a href={tronScanLink} target="_blank" rel="noopener noreferrer">
-                View on TronScan
-              </a>
-            </div>
-          );
-          setLoadingtrx(false);
-        } else {
-          toast.success(
-            <div>
-              Token minted successfully, check the transaction event log to get the address.
-              <br />
-              <a href={tronScanLink} target="_blank" rel="noopener noreferrer">
-                View on TronScan
-              </a>
-            </div>
-          );
-          setIsTokenMinted(true);
-          setDisablemint(true);
-          setLoadingtrx(false);
-        }
-      } else {
-        toast.error('Transaction failed. Please try again.', { position: 'top-center' });
-        setLoadingtrx(false);
-      }
-    } catch (error) {
-      console.error('Error during minting:', error);
-      toast.error('An error occurred while minting tokens. Please try again.', {
-        position: 'top-center',
-      });
-      setLoadingtrx(false);
-    }
-  };
-  */
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(contractAddress)
@@ -602,34 +491,25 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
         <ScrollableContent>
           <Container>
             <Title>Mint TRC-20 Tokens</Title>
-            {/* <Description>
+            <Description>
               For this minting token purpose, we are using the Nile testnet. Nile is a TRON testnet
               that allows developers to test their smart contracts and applications without using
               real TRX.
-            </Description> */}
-            <Description>
-              Create your own TRC-20 token on the TRON mainnet. This process requires real TRX for
-              transaction fees. Make sure you have sufficient TRX in your wallet before proceeding.
             </Description>
 
-            {/* <Label>What is Nile Testnet?</Label> */}
-            <Label>Important Information</Label>
+            <Label>What is Nile Testnet?</Label>
             <HighlightedText>
               <DiscList>
-                {/* <Lists>Nile is a test environment that mimics the TRON mainnet.</Lists>
+                <Lists>Nile is a test environment that mimics the TRON mainnet.</Lists>
                 <Lists>It allows free testing of smart contracts and DApps.</Lists>
                 <Lists>Transactions on Nile do not involve real TRX or tokens.</Lists>
                 <Lists>
                   It's ideal for development and testing before deploying to the mainnet.
-                </Lists> */}
-                <Lists>You are creating a real TRC-20 token on the TRON mainnet.</Lists>
-                <Lists>Transaction fees will be charged in real TRX.</Lists>
-                <Lists>The token will be immediately tradeable on the TRON network.</Lists>
-                <Lists>Make sure to save your token's contract address after minting.</Lists>
+                </Lists>
               </DiscList>
             </HighlightedText>
 
-            {/* <Label>Steps to change network from Shasta to Nile:</Label>
+            <Label>Steps to change network from Shasta to Nile:</Label>
             <List>
               <ListItem>Open your TronLink wallet extension.</ListItem>
               <ListItem>
@@ -637,16 +517,9 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
               </ListItem>
               <ListItem>Select "Nile Testnet" from the list of available networks.</ListItem>
               <ListItem>Ensure that your wallet now shows "Nile" as the active network.</ListItem>
-            </List> */}
-            <Label>Before You Start:</Label>
-            <List>
-              <ListItem>Ensure your TronLink wallet is connected to Mainnet.</ListItem>
-              <ListItem>Verify you have sufficient TRX for transaction fees.</ListItem>
-              <ListItem>Double-check your token details before minting.</ListItem>
-              <ListItem>Keep your contract address safe after minting.</ListItem>
             </List>
 
-            {/* <HighlightedText2>
+            <HighlightedText2>
               To mint tokens on the Nile testnet, you'll need Nile TRX. You can get free Nile TRX
               from the{' '}
               <a
@@ -658,11 +531,7 @@ export default function MintTRC20Tokens({ onBack }: MintTRC20TokensProps) {
                 Nile faucet
               </a>
               .
-            </HighlightedText2> */}
-             <HighlightedText>
-              Note: Token decimals are set to 18 by default, providing the same precision as TRX.
-              This is the standard for most TRC20 tokens.
-            </HighlightedText>
+            </HighlightedText2>
 
             <InputGroup>
               <Label>Token Name:</Label>

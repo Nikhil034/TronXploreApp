@@ -273,10 +273,11 @@ const Link = styled.a`
 `
 interface TronEnergyExplainerProps {
   onBack: () => void
-  onFinish: () => void
+  onFinish:()=>void
 }
 
-export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExplainerProps) {
+
+export default function TronEnergyExplainer({ onBack,onFinish }: TronEnergyExplainerProps) {
   const [address, setAddress] = useState('')
   const [blockno, setBlockno] = useState('')
   const [bandwidth, setBandwidth] = useState('')
@@ -304,6 +305,8 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
     taskStatus[taskKey] = true
     localStorage.setItem('tasks_status', JSON.stringify(taskStatus))
   }
+
+
 
   useEffect(() => {
     if (!window.tronWeb || !window.tronWeb.ready) {
@@ -337,81 +340,9 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
     fetchTaskStatus()
   }, []) // Empty dependency array to run only on component mount
 
-  const HandleTransaction = async () => {
-    // Check if TronLink is installed
-    if (typeof window.tronWeb === 'undefined') {
-      toast.error('Please install TronLink wallet', {
-        position: 'top-center',
-      })
-      return
-    } else {
-      // Check if wallet is connected
-      if (!window.tronWeb.ready) {
-        try {
-          // Prompt user to connect wallet
-          await window.tronWeb.request({ method: 'tron_requestAccounts' })
-          return
-        } catch (error) {
-          toast.error('Please connect your TronLink wallet', {
-            position: 'top-center',
-          })
-          return
-        }
-      } else {
-        // Get the connected address
-        const address = window.tronWeb.defaultAddress.base58
 
-        if (!address) {
-          toast.error('Unable to get wallet address', {
-            position: 'top-center',
-          })
-          return
-        }
 
-        setLoading(true)
-        try {
-          const getdetails = await axios.get(
-            `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`
-          )
-
-          if (
-            blockno == getdetails.data.trc20_send_blockno_nile &&
-            bandwidth == getdetails.data.trc20_send_bandwidth_nile
-          ) {
-            const response = await axios.patch(
-              'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task10',
-              { address: address }
-            )
-            // console.log("Response:", response.data);
-            toast.success('Congratulations on completing Final task! 🎉', {
-              position: 'top-center',
-            })
-            updateTaskStatus('is_view_transaction_task10')
-            setBlockno('')
-            setBandwidth('')
-            setIsTaskCompleted(true)
-            setIsValid(true)
-            setLoading(false)
-          } else {
-            toast.error('Incorrect Blockno or Bandwidth found, try again!', {
-              position: 'top-center',
-            })
-            setLoading(false)
-          }
-        } catch (error) {
-          console.error('Error:', error)
-          toast.error('An error occurred. Please try again.', {
-            position: 'top-center',
-          })
-          setLoading(false)
-        }
-      }
-    }
-  }
-
-  /*
-
-  const HandleTransaction = async () => {
+const HandleTransaction = async () => {
   // Check if TronLink is installed
   if (typeof window.tronWeb === 'undefined') {
     toast.error('Please install TronLink wallet', {
@@ -419,8 +350,10 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
     });
     return;
   }
+  else
+  {
 
-  // Check if wallet is connected
+    // Check if wallet is connected
   if (!window.tronWeb.ready) {
     try {
       // Prompt user to connect wallet
@@ -433,76 +366,44 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
       return;
     }
   }
-
-  // Get the connected address
+  else
+  {
+          // Get the connected address
   const address = window.tronWeb.defaultAddress.base58;
 
-  if (!address || !window.tronWeb.isAddress(address)) {
-    toast.error('Invalid wallet address detected. Please reconnect your wallet.', {
-      position: 'top-center',
-    });
-    return;
-  }
-
-  // Validate block number and bandwidth
-  if (!blockno || isNaN(blockno) || !bandwidth || isNaN(bandwidth)) {
-    toast.error('Invalid Block Number or Bandwidth. Please try again.', {
+  if (!address) {
+    toast.error('Unable to get wallet address', {
       position: 'top-center',
     });
     return;
   }
 
   setLoading(true);
-
   try {
-    // Fetch blockno and bandwidth details
-    const getdetails = await axios
-      .get(
-        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`
-      )
-      .catch((error) => {
-        console.error('Error fetching blockno and bandwidth:', error);
-        toast.error('Failed to retrieve transaction details. Please try again.', {
-          position: 'top-center',
-        });
-        setLoading(false);
-        return null;
-      });
+    const getdetails = await axios.get(
+      `https://api.tronxplore.blockchainbytesdaily.com/api/users/${address}/trc20-send-blockno-bandwidth`
+    );
 
-    if (!getdetails) return;
-
-    // Compare blockno and bandwidth
     if (
       blockno == getdetails.data.trc20_send_blockno_nile &&
       bandwidth == getdetails.data.trc20_send_bandwidth_nile
     ) {
-      const response = await axios
-        .patch(
-          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task10',
-          { address: address }
-        )
-        .catch((error) => {
-          console.error('Error updating task:', error);
-          toast.error('Failed to update task status. Please try again.', {
-            position: 'top-center',
-          });
-          setLoading(false);
-          return null;
-        });
-
-      if (response) {
-        toast.success('Congratulations on completing the final task! 🎉', {
-          position: 'top-center',
-        });
-        updateTaskStatus('is_view_transaction_task10');
-        setBlockno('');
-        setBandwidth('');
-        setIsTaskCompleted(true);
-        setIsValid(true);
-        setLoading(false);
-      }
+      const response = await axios.patch(
+        'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task10',
+        { address: address }
+      );
+      // console.log("Response:", response.data);
+      toast.success('Congratulations on completing Final task! 🎉', {
+        position: 'top-center',
+      });
+      updateTaskStatus('is_view_transaction_task10');
+      setBlockno('');
+      setBandwidth('');
+      setIsTaskCompleted(true);
+      setIsValid(true);
+      setLoading(false);
     } else {
-      toast.error('Incorrect Block Number or Bandwidth found. Try again!', {
+      toast.error('Incorrect Blockno or Bandwidth found, try again!', {
         position: 'top-center',
       });
       setLoading(false);
@@ -513,42 +414,38 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
       position: 'top-center',
     });
     setLoading(false);
+   } 
+  }
+  } 
+};
+const handleFinish = async () => {
+  const username = Cookies.get('username');
+  
+  try {
+    const response = await axios.get(`https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`);
+    const tasksStatus = response.data;
+
+    // Check if all tasks are completed
+    const allTasksCompleted = Object.values(tasksStatus).every(status => status === true);
+
+    if (allTasksCompleted) {
+      // All tasks are completed
+      localStorage.setItem('tasks_status', JSON.stringify(tasksStatus));
+      
+      // Call the onFinish prop to trigger the congratulations popup
+      onFinish();
+
+      // Navigate to the home page
+      navigate('/');
+    } else {
+      // Not all tasks are completed
+      toast.error('Please complete all your remaining tasks and come back again!');
+    }
+  } catch (error) {
+    console.error('Error fetching tasks status:', error);
+    toast.error('Failed to fetch tasks status. Please try again.');
   }
 };
-
-*/
-    
-
-  const handleFinish = async () => {
-    const username = Cookies.get('username')
-
-    try {
-      const response = await axios.get(
-        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${username}/tasks-status`
-      )
-      const tasksStatus = response.data
-
-      // Check if all tasks are completed
-      const allTasksCompleted = Object.values(tasksStatus).every((status) => status === true)
-
-      if (allTasksCompleted) {
-        // All tasks are completed
-        localStorage.setItem('tasks_status', JSON.stringify(tasksStatus))
-
-        // Call the onFinish prop to trigger the congratulations popup
-        onFinish()
-
-        // Navigate to the home page
-        navigate('/')
-      } else {
-        // Not all tasks are completed
-        toast.error('Please complete all your remaining tasks and come back again!')
-      }
-    } catch (error) {
-      console.error('Error fetching tasks status:', error)
-      toast.error('Failed to fetch tasks status. Please try again.')
-    }
-  }
 
   return (
     <>
@@ -564,27 +461,18 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
             <List>
               <ListItem className="flex items-center gap-1">
                 Go to{' '}
-                {/* <Link
+                <Link
                   href={`https://nile.tronscan.org/#/address/${address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   Nile Tronscan
                   <ExternalLink size={14} style={{ marginLeft: '5px' }} />
-                </Link> */}
-                <Link
-                  href={`https://tronscan.org/#/address/${address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  TronScan
-                  <ExternalLink size={14} style={{ marginLeft: '5px' }} />
                 </Link>
               </ListItem>
               <ListItem>Scroll down to the "Transactions" section</ListItem>
               <ListItem>
-                {/* Find your most recent transaction on the Nile testnet regarding TRC-20 token */}
-                Find your most recent transaction regarding TRC-20 token creation
+                Find your most recent transaction on the Nile testnet regarding TRC-20 token
               </ListItem>
               <ListItem>Click on the transaction to view its details</ListItem>
               <ListItem>Look for the "Block" and "Bandwidth" information</ListItem>
@@ -614,7 +502,7 @@ export default function TronEnergyExplainer({ onBack, onFinish }: TronEnergyExpl
                 ) : isTaskCompleted ? (
                   'Task Completed'
                 ) : (
-                  'Verify Transaction'
+                  'Check it!'
                 )}
               </Button>
               <ButtonCont onClick={handleFinish} disabled={!isValid}>

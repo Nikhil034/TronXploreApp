@@ -313,12 +313,6 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         return
       }
 
-      const currentNode = window.tronWeb.fullNode.host;
-      if (!currentNode.includes('api.trongrid.io')) {
-        toast.error('Switch to Mainnet in TronLink and try again.', { position: 'top-center' });
-        return;
-      }
-
       try {
         setLoading(true)
         const userAddress = window.tronWeb.defaultAddress.base58
@@ -405,125 +399,6 @@ export default function SendTRX({ onBack }: SendTRXProps) {
         }    
     }
   }
-
-  /*
-
-  const handleSend = async () => {
-  if (window.tronWeb && window.tronWeb.ready) {
-    if (!recipient || !amount || amount === undefined) {
-      toast.error('Please enter both the recipient address and the amount of tokens to send.', {
-        position: 'top-center',
-      });
-      return;
-    }
-
-    if (!window.tronWeb.isAddress(recipient)) {
-      toast.error('Invalid recipient address. Please enter a valid Tron address.', {
-        position: 'top-center',
-      });
-      return;
-    }
-
-     const currentNode = window.tronWeb.fullNode.host;
-      if (!currentNode.includes('api.trongrid.io')) {
-        setError('You are not connected to the Mainnet. Please switch to the Mainnet in TronLink.');
-        toast.error('Switch to Mainnet in TronLink and try again.', { position: 'top-center' });
-        return;
-      }
-  
-
-    try {
-      setLoading(true);
-      const userAddress = window.tronWeb.defaultAddress.base58;
-      setUseraddress(userAddress);
-
-      const contractAddressResponse = await axios.get(
-        `https://api.tronxplore.blockchainbytesdaily.com/api/users/${userAddress}/trc20mintcontract`
-      ).catch((error) => {
-        toast.error('Failed to fetch contract address. Please try again.', {
-          position: 'top-center',
-        });
-        setLoading(false);
-        return null;
-      });
-
-      if (!contractAddressResponse || !contractAddressResponse.data.trc20mint_contract_address) {
-        return;
-      }
-
-      const contractAddress = contractAddressResponse.data.trc20mint_contract_address;
-
-      const trc20ABI = [
-        {
-          constant: false,
-          inputs: [
-            { name: '_to', type: 'address' },
-            { name: '_value', type: 'uint256' },
-          ],
-          name: 'transfer',
-          outputs: [{ name: '', type: 'bool' }],
-          type: 'function',
-        },
-      ];
-
-      const contract = await window.tronWeb.contract(trc20ABI, contractAddress);
-
-      const tokenDecimals = 18; // Adjust if necessary
-      const tokenAmount = window.tronWeb.toBigNumber(amount * (10 ** tokenDecimals));
-
-      const transaction = await contract.transfer(recipient, tokenAmount.toString()).send();
-
-      if (!transaction) {
-        toast.error('Transaction hash is missing. Please retry.', {
-          position: 'top-center',
-        });
-        setLoading(false);
-        return;
-      }
-
-      setVerificationURL(`https://tronscan.org/#/address/${userAddress}`);
-      setTxnHash(transaction);
-      setShowVerificationSteps(true);
-
-      toast.success(`Transaction sent successfully!`, {
-        position: 'top-center',
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error('Error sending tokens:', error);
-      toast.error('Error sending tokens. Please try again.', {
-        position: 'top-center',
-      });
-      setLoading(false);
-    }
-  } else {
-    const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
-
-    if (!tronLinkInstalled) {
-      toast.error('TronLink not detected. Please install TronLink wallet!', {
-        position: 'top-center',
-      });
-      setLoading(false);
-    } else {
-      try {
-        await window.tronWeb.request({
-          method: 'tron_requestAccounts',
-        });
-        toast.success('TronLink connected or need to unlock! Please try again.', {
-          position: 'top-center',
-        });
-        setLoading(false);
-      } catch (error) {
-        toast.error('Failed to connect to TronLink. Please try again!', {
-          position: 'top-center',
-        });
-        setLoading(false);
-      }
-    }
-  }
-};
-
-  */
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(verificationUrl)
@@ -622,7 +497,6 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             <Input
              type="number"
              placeholder="Enter amount of TRX..."
-             min={0}
              value={amount === undefined ? '' : amount}
              onChange={(e) => {
              const inputValue = e.target.value;

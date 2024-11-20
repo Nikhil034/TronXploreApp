@@ -196,17 +196,6 @@ const InfoListItem = styled.li`
   }
 `
 
-const HighlightedText = styled(Text)`
-  margin-bottom: 15px;
-  background-color: rgb(82 79 79 / 80%);
-  padding: 20px;
-  border-left: 4px solid #cc0000;
-  border-radius: 0 10px 10px 0;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
-`
-
 const ButtonCont = styled.button<{ disabled: boolean }>`
   background: ${({ disabled }) =>
     disabled
@@ -310,175 +299,73 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
     fetchTaskStatus()
   }, []) // Empty dependency array to run only on component mount
 
-
-  // const handleStake = async () => {
-  //   setError('')
-  //   setSuccess('')
-  //   const amount = parseFloat(trxAmount)
-
-  //   if (!amount || amount <= 0) {
-  //     setError('Please enter a valid TRX amount to stake.')
-  //     return
-  //   }
-
-  //   if (!(window as any).tronWeb || !(window as any).tronWeb.ready) {
-  //     setError('TronLink wallet is not installed or unlocked. Please ensure TronLink is available.')
-  //     return
-  //   }
-
-  //   try {
-  //     const tronWeb = (window as any).tronWeb
-  //     const userAddress = tronWeb.defaultAddress.base58
-  //     // console.log('User address:', userAddress)
-
-  //     if (!tronWeb.isAddress(userAddress)) {
-  //       throw new Error('Invalid TRON address')
-  //     }
-  //     setLoading(true)
-
-  //     const sunAmount = tronWeb.toSun(amount)
-  //     // console.log('Staking amount in SUN:', sunAmount)
-
-  //     const balance = await tronWeb.trx.getBalance(userAddress)
-  //     // console.log('Account balance (SUN):', balance)
-  //     // console.log('Current network:', tronWeb.fullNode.host)
-
-  //     const accountResources = await tronWeb.trx.getAccountResources(userAddress)
-  //     // console.log('Account resources:', accountResources)
-
-  //     if (accountResources.EnergyLimit > 0) {
-  //       // console.log('Existing freeze detected. Please unfreeze before creating a new freeze.')
-  //       setLoading(false)
-  //       setError('You have an existing freeze. Please unfreeze before staking again.')
-  //       return
-  //     }
-
-  //     if (balance < sunAmount) {
-  //       // console.log('Insufficient balance')
-  //       setLoading(false)
-  //       setError('Insufficient balance to complete the staking transaction.')
-  //       return
-  //     }
-
-  //     // console.log('Preparing freeze balance transaction...')
-  //     const result = await tronWeb.transactionBuilder.freezeBalanceV2(
-  //       sunAmount,
-  //       'ENERGY',
-  //       userAddress
-  //     )
-  //     // console.log('Freeze balance transaction prepared:', result)
-
-  //     // console.log('Signing transaction...')
-  //     const signedTxn = await tronWeb.trx.sign(result)
-  //     // console.log('Transaction signed:', signedTxn)
-
-  //     console.log('Broadcasting transaction...')
-  //     const txnReceipt = await tronWeb.trx.sendRawTransaction(signedTxn)
-  //     // console.log('Transaction receipt:', txnReceipt)
-
-  //     if (txnReceipt.result) {
-  //       // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
-  //       const response = await axios.patch(
-  //         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7',
-  //         {
-  //           address: userAddress,
-  //           txhash: txnReceipt.txid,
-  //           amount: amount,
-  //         }
-  //       )
-  //       // console.log("Response:",response.data);
-  //       toast.success('Congratulations on completing your task! 🎉.', {
-  //         position: 'top-center',
-  //         duration: 5000,
-  //       })
-  //       setSuccess('Succesfully staked energy you can check out your wallet.')
-  //       setIsValid(true)
-  //       setLoading(false)
-  //       updateTaskStatus('is_get_energy_task7')
-  //       setIsTaskCompleted(true);
-  //     } else {
-  //       console.error('Transaction failed:', txnReceipt)
-  //       setError('Transaction failed. Please check the console for details and try again.')
-  //       setLoading(false)
-  //     }
-  //   } catch (error: any) {
-  //     setLoading(false)
-  //     console.error('Error during staking:', error)
-  //     if (error.message === 'Invalid TRON address') {
-  //       setError('The TRON address is invalid. Please check your wallet connection.')
-  //     } else if (error.error === 'CONTRACT_VALIDATE_ERROR') {
-  //       console.error('Contract validation error details:', error)
-  //       const decodedMessage = Buffer.from(error.message, 'hex').toString('utf8')
-  //       // console.log('Decoded error message:', decodedMessage)
-  //       setError(`Contract validation error: ${decodedMessage}`)
-  //     } else {
-  //       setError('An error occurred while staking TRX: ' + error.message)
-  //     }
-  //   }
-  // }
-
-
-  //Switch to Mainnet
   const handleStake = async () => {
-    setError('');
-    setSuccess('');
-    const amount = parseFloat(trxAmount);
-  
+    setError('')
+    setSuccess('')
+    const amount = parseFloat(trxAmount)
+
     if (!amount || amount <= 0) {
-      setError('Please enter a valid TRX amount to stake.');
-      return;
+      setError('Please enter a valid TRX amount to stake.')
+      return
     }
-  
-    if (!window.tronWeb || !window.tronWeb.ready) {
-      setError('TronLink wallet is not installed or unlocked. Please ensure TronLink is available.');
-      return;
+
+    if (!(window as any).tronWeb || !(window as any).tronWeb.ready) {
+      setError('TronLink wallet is not installed or unlocked. Please ensure TronLink is available.')
+      return
     }
-  
+
     try {
-      const tronWeb = window.tronWeb;
-      const userAddress = tronWeb.defaultAddress.base58;
-  
+      const tronWeb = (window as any).tronWeb
+      const userAddress = tronWeb.defaultAddress.base58
+      // console.log('User address:', userAddress)
+
       if (!tronWeb.isAddress(userAddress)) {
-        throw new Error('Invalid TRON address');
+        throw new Error('Invalid TRON address')
       }
-  
-      // Check if the user is on the Mainnet
-      const currentNode = tronWeb.fullNode.host;
-      if (!currentNode.includes('api.trongrid.io')) {
-        setError('You are not connected to the Mainnet. Please switch to the Mainnet in TronLink.');
-        toast.error('Switch to Mainnet in TronLink and try again.', { position: 'top-center' });
-        return;
-      }
-  
-      setLoading(true);
-  
-      const sunAmount = tronWeb.toSun(amount);
-  
-      const balance = await tronWeb.trx.getBalance(userAddress);
-      const accountResources = await tronWeb.trx.getAccountResources(userAddress);
-  
+      setLoading(true)
+
+      const sunAmount = tronWeb.toSun(amount)
+      // console.log('Staking amount in SUN:', sunAmount)
+
+      const balance = await tronWeb.trx.getBalance(userAddress)
+      // console.log('Account balance (SUN):', balance)
+      // console.log('Current network:', tronWeb.fullNode.host)
+
+      const accountResources = await tronWeb.trx.getAccountResources(userAddress)
+      // console.log('Account resources:', accountResources)
+
       if (accountResources.EnergyLimit > 0) {
-        setLoading(false);
-        setError('You have an existing freeze. Please unfreeze before staking again.');
-        return;
+        // console.log('Existing freeze detected. Please unfreeze before creating a new freeze.')
+        setLoading(false)
+        setError('You have an existing freeze. Please unfreeze before staking again.')
+        return
       }
-  
+
       if (balance < sunAmount) {
-        setLoading(false);
-        setError('Insufficient balance to complete the staking transaction.');
-        return;
+        // console.log('Insufficient balance')
+        setLoading(false)
+        setError('Insufficient balance to complete the staking transaction.')
+        return
       }
-  
+
+      // console.log('Preparing freeze balance transaction...')
       const result = await tronWeb.transactionBuilder.freezeBalanceV2(
         sunAmount,
         'ENERGY',
         userAddress
-      );
-  
-      const signedTxn = await tronWeb.trx.sign(result);
-      const txnReceipt = await tronWeb.trx.sendRawTransaction(signedTxn);
-  
+      )
+      // console.log('Freeze balance transaction prepared:', result)
+
+      // console.log('Signing transaction...')
+      const signedTxn = await tronWeb.trx.sign(result)
+      // console.log('Transaction signed:', signedTxn)
+
+      console.log('Broadcasting transaction...')
+      const txnReceipt = await tronWeb.trx.sendRawTransaction(signedTxn)
+      // console.log('Transaction receipt:', txnReceipt)
+
       if (txnReceipt.result) {
+        // setSuccess(`Staking successful! Transaction Hash: ${txnReceipt.txid}`)
         const response = await axios.patch(
           'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_task7',
           {
@@ -486,34 +373,37 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
             txhash: txnReceipt.txid,
             amount: amount,
           }
-        );
-  
-        toast.success('Congratulations on completing your task! 🎉', {
+        )
+        // console.log("Response:",response.data);
+        toast.success('Congratulations on completing your task! 🎉.', {
           position: 'top-center',
           duration: 5000,
-        });
-        setSuccess('Successfully staked energy. You can check it in your wallet.');
-        setIsValid(true);
-        setLoading(false);
-        updateTaskStatus('is_get_energy_task7');
+        })
+        setSuccess('Succesfully staked energy you can check out your wallet.')
+        setIsValid(true)
+        setLoading(false)
+        updateTaskStatus('is_get_energy_task7')
         setIsTaskCompleted(true);
       } else {
-        setError('Transaction failed. Please check the console for details and try again.');
-        setLoading(false);
+        console.error('Transaction failed:', txnReceipt)
+        setError('Transaction failed. Please check the console for details and try again.')
+        setLoading(false)
       }
-    } catch (error:any) {
-      setLoading(false);
-      console.error('Error during staking:', error);
+    } catch (error: any) {
+      setLoading(false)
+      console.error('Error during staking:', error)
       if (error.message === 'Invalid TRON address') {
-        setError('The TRON address is invalid. Please check your wallet connection.');
+        setError('The TRON address is invalid. Please check your wallet connection.')
       } else if (error.error === 'CONTRACT_VALIDATE_ERROR') {
-        const decodedMessage = Buffer.from(error.message, 'hex').toString('utf8');
-        setError(`Contract validation error: ${decodedMessage}`);
+        console.error('Contract validation error details:', error)
+        const decodedMessage = Buffer.from(error.message, 'hex').toString('utf8')
+        // console.log('Decoded error message:', decodedMessage)
+        setError(`Contract validation error: ${decodedMessage}`)
       } else {
-        setError('An error occurred while staking TRX: ' + error.message);
+        setError('An error occurred while staking TRX: ' + error.message)
       }
     }
-  };
+  }
 
   return (
     <>
@@ -553,8 +443,6 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
                 </InfoListItem>
               </InfoList>
             </InfoBox>
-
-            <HighlightedText>Note: Make sure that you are on the Mainnet network in your TronLink wallet. Transactions on other networks will not be processed on the main Tron blockchain.</HighlightedText>
             <Label htmlFor="trxInput">Enter TRX amount to stake:</Label>
             <Input
               type="number"
@@ -562,7 +450,7 @@ export default function StakeTRX({ onBack }: StakeTRXProps) {
               placeholder="e.g., 100"
               value={trxAmount}
               onChange={(e) => setTrxAmount(e.target.value)}
-              min={1}
+              min={0}
             />
 
             <StakeButton onClick={handleStake} disabled={isTaskCompleted || loading}>

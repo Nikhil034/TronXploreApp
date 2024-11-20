@@ -294,62 +294,62 @@ const CongratulationsPopup = ({ onClose }) => {
   }
 
   // Function to mint NFT using window.tronWeb
-  const mintNFT = async (metadataURI: string) => {
-    try {
-      // Check if window.tronWeb is available
+  // const mintNFT = async (metadataURI: string) => {
+  //   try {
+  //     // Check if window.tronWeb is available
 
-      const contractAddress = 'TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo'
+  //     const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3'
 
-      if (typeof window !== 'undefined' && window.tronWeb) {
-        const tronWeb = window.tronWeb
-        const address = tronWeb.defaultAddress.base58
-        // console.log(address);
+  //     if (typeof window !== 'undefined' && window.tronWeb) {
+  //       const tronWeb = window.tronWeb
+  //       const address = tronWeb.defaultAddress.base58
+  //       // console.log(address);
 
-        // Get the contract instance
-        const contract = await tronWeb.contract().at(contractAddress)
+  //       // Get the contract instance
+  //       const contract = await tronWeb.contract().at(contractAddress)
 
-        // Mint the NFT using the safeMint function (address + metadataURI)
-        const result = await contract
-          .safeMint(
-            address, // Replace with user's Tron address
-            metadataURI
-          )
-          .send({ from: tronWeb.defaultAddress.base58 })
+  //       // Mint the NFT using the safeMint function (address + metadataURI)
+  //       const result = await contract
+  //         .safeMint(
+  //           address, // Replace with user's Tron address
+  //           metadataURI
+  //         )
+  //         .send({ from: tronWeb.defaultAddress.base58 })
 
-        // Set the transaction hash and display it
+  //       // Set the transaction hash and display it
 
-        const transactionHash = result.txID // Access the transaction hash from the result
-        console.log('Transaction Hash:', transactionHash)
-        console.log('Transaction Hash:', result)
-        setNftHash(result)
-        const respose = await axios.patch(
-          'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
-          {
-            address: address,
-            nft_hash: result,
-          }
-        )
-        if (respose.data) {
-          toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
-            position: 'top-center',
-          })
-        }
-        setLoading(false)
-        // setShowSteps(true);
-        // setIsCertified(true);
-        // setShowTransaction(true);
-      } else {
-        console.error('TronWeb is not available.')
-        toast.error('TronWeb is not available. Please install TronLink.')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Error minting NFT:', error)
-      setLoading(false)
-    }
-  }
+  //       const transactionHash = result.txID // Access the transaction hash from the result
+  //       console.log('Transaction Hash:', transactionHash)
+  //       console.log('Transaction Hash:', result)
+  //       setNftHash(result)
+  //       const respose = await axios.patch(
+  //         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
+  //         {
+  //           address: address,
+  //           nft_hash: result,
+  //         }
+  //       )
+  //       if (respose.data) {
+  //         toast.success('🏆 Congrats! You’ve just earned your certificate as an NFT!', {
+  //           position: 'top-center',
+  //         })
+  //       }
+  //       setLoading(false)
+  //       // setShowSteps(true);
+  //       // setIsCertified(true);
+  //       // setShowTransaction(true);
+  //     } else {
+  //       console.error('TronWeb is not available.')
+  //       toast.error('TronWeb is not available. Please install TronLink.')
+  //       setLoading(false)
+  //     }
+  //   } catch (error) {
+  //     console.error('Error minting NFT:', error)
+  //     setLoading(false)
+  //   }
+  // }
 
-  /*
+  
   const mintNFT = async (metadataURI: string) => {
   try {
     // Check if TronWeb is available
@@ -377,10 +377,10 @@ const CongratulationsPopup = ({ onClose }) => {
     }
 
     // Provide user feedback
-    toast.info('Minting in progress... Please wait.');
+    toast.success('Minting in progress... Please wait.');
 
     // Contract address and instance
-    const contractAddress = 'TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo';
+    const contractAddress = 'TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3';
     const contract = await tronWeb.contract().at(contractAddress);
 
     // Mint the NFT
@@ -418,7 +418,7 @@ const CongratulationsPopup = ({ onClose }) => {
       toast.error('Minting failed. Please check your transaction.');
     }
     setLoading(false);
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error minting NFT:', error);
     if (error.message.includes('INSUFFICIENT_BALANCE')) {
       toast.error('Not enough TRX balance for minting. Please fund your wallet.');
@@ -430,7 +430,7 @@ const CongratulationsPopup = ({ onClose }) => {
 };
 
 
-*/
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -521,14 +521,14 @@ const CongratulationsPopup = ({ onClose }) => {
               <>
                 <Button disabled>Already Certified</Button>
                 {nftHash && (
-                  <TransactionLink
-                    href={`https://tronscan.org/#/address/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
+                 <TransactionLink
+                 href={`https://tronscan.org/#/transaction/${nftHash}`}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 initial={{ opacity: 0, y: -10 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 exit={{ opacity: 0, y: -10 }}
+               >
                     View your NFT transaction →
                   </TransactionLink>
                 )}
@@ -574,7 +574,7 @@ const CongratulationsPopup = ({ onClose }) => {
                   <ListItem>
                     Click the plus icon and enter the contract address:
                     <span className="text-[#ff0000] font-semibold">
-                      TFGufR9X3i3yHkdKuHJxwjyh8UD9DfXdKo
+                    TJzyUrT5MeXkqrguBh5B3HwKmjhUbHkJE3
                     </span>
                   </ListItem>
                   <ListItem>Select "TXN" from the list to view your certificate.</ListItem>

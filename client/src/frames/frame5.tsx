@@ -313,28 +313,14 @@ export default function SendTRX({ onBack }: SendTRXProps) {
   const handleSend = async () => {
     try {
       setLoading(true)
-
       if (window.tronWeb && window.tronWeb.ready) {
         const tronLink = window.tronWeb
         const address = tronLink.defaultAddress.base58
-
-        // Detect network
-        const currentNode = await tronLink.fullNode.host // Gets the current network
-        const isMainnet = currentNode.includes('https://api.trongrid.io')
-
-        if (!isMainnet) {
-          toast.error('You are not connected to the Mainnet. Please switch to Mainnet.', {
-            position: 'top-center',
-          })
-          setLoading(false)
-          return
-        }
 
         if (!recipient || !amount) {
           toast.error('Please enter both recipient address and amount.', {
             position: 'top-center',
           })
-          setLoading(false)
           return
         }
 
@@ -343,7 +329,6 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           toast.error('Invalid recipient address.', {
             position: 'top-center',
           })
-          setLoading(false)
           return
         }
 
@@ -353,22 +338,15 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           toast.error('Invalid amount.', {
             position: 'top-center',
           })
-          setLoading(false)
-          return
-        }
-
-        const Balance = await window.tronWeb.trx.getBalance(address)
-        if(Balance==0){
-          toast.error('Insufficent amount in wallet to send!', {
-            position: 'top-center',
-          })
-          setLoading(false)
           return
         }
 
         const transaction = await tronLink.transactionBuilder.sendTrx(recipient, amountInSun)
         const signedTransaction = await tronLink.trx.sign(transaction)
         const result = await tronLink.trx.sendRawTransaction(signedTransaction)
+
+        // console.log(result)
+        // console.log(result.txid)
 
         if (result.result) {
           const response = await axios.patch(
@@ -380,6 +358,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               txhash: result.txid,
             }
           )
+          // console.log(response.data);
           toast.success('Congratulations on completing your task! 🎉', {
             position: 'top-center',
           })
@@ -388,38 +367,40 @@ export default function SendTRX({ onBack }: SendTRXProps) {
           setAmount('')
           setIsValid(true)
           updateTaskStatus('is_send_trx_task5')
-          setIsTaskCompleted(true)
+          setIsTaskCompleted(true);
         } else {
           toast.error('Transaction Failed!', {
             position: 'top-center',
           })
           setLoading(false)
         }
-      } else {
+      }  else {
         // Request TronLink to connect
-        const tronLinkInstalled = window.tronWeb && window.tronWeb.request
-
-        if (!tronLinkInstalled) {
-          toast.error('TronLink not detected. Please install TronLink wallet!', {
-            position: 'top-center',
-          })
-          setLoading(false)
-        } else {
-          try {
-            await window.tronWeb.request({
-              method: 'tron_requestAccounts',
-            })
-            toast.success('TronLink connected. Please try again.', {
+        const tronLinkInstalled = window.tronWeb && window.tronWeb.request;
+    
+          if (!tronLinkInstalled) {
+            toast.error('TronLink not detected. Please install TronLink wallet!', {
               position: 'top-center',
             })
-            setLoading(false)
-          } catch (error) {
-            toast.error('Failed to connect to TronLink. Please try again!', {
-              position: 'top-center',
-            })
-            setLoading(false)
+            setLoading(false);
           }
-        }
+          else
+          {
+            try {
+              await window.tronWeb.request({
+                method: 'tron_requestAccounts',
+              })
+              toast.success('TronLink connected. Please try again.', {
+                position: 'top-center',
+              })
+              setLoading(false);
+            } catch (error) {
+              toast.error('Failed to connect to TronLink. Please try again!', {
+                position: 'top-center',
+              })
+              setLoading(false);
+            }
+          }    
       }
     } catch (error) {
       console.error('Error: ', error)
@@ -442,7 +423,7 @@ export default function SendTRX({ onBack }: SendTRXProps) {
             <HighlightedText>
               To safely test transactions, you can create a sub-account on TronLink. This allows you
               to test with smaller amounts of TRX without risking your main account and make sure
-              you are there in <b>Mainnet</b> network
+              you are there in <b>shasta</b> network
             </HighlightedText>
 
             <List>
@@ -477,7 +458,6 @@ export default function SendTRX({ onBack }: SendTRXProps) {
               placeholder="Enter amount of TRX..."
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              min="0"
             />
 
             <Subtitle>Step 3: Confirm the Transaction</Subtitle>
