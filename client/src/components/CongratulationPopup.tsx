@@ -341,7 +341,7 @@ const CongratulationsPopup = ({ onClose }) => {
         'https://api.tronxplore.blockchainbytesdaily.com/api/users/user_nft',
         {
           address: address,
-          nft_hash: result.txID,  // Make sure to send the txID here
+          nft_hash: result  // Make sure to send the txID here
         }
       )
       
